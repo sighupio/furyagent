@@ -20,7 +20,14 @@ func main() {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
 	fmt.Println(configuration)
-	configuration.Validate()
-	fmt.Println("starting download")
-	log.Println(configuration.Download())
+
+	err = configuration.Validate()
+	if err != nil {
+		log.Println("ERROR VALIDATING: ", err)
+	}
+
+	err = configuration.Download()
+	if err != nil {
+		log.Println("ERROR DOWNLOADING: ", err)
+	}
 }

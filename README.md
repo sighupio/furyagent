@@ -9,3 +9,6 @@ git::https://gitlab+deploy-token-1:zU92yQ4reCQyqeE_i1KL@git.incubator.sh/sighup/
 go get -u github.com/hashicorp/go-discover/cmd/discover
 
 discover -q addrs provider=aws tag_key=KubernetesCluster tag_value=flyer-tech-cluster
+
+# BUGS
+- doesn't cleanup old downloads no longer in Furyfile

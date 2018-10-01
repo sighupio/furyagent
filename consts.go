@@ -49,7 +49,7 @@ func (f *Furyconf) Download() error {
 	}
 	for _, v := range f.Modules {
 		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, modulesRepo, v.Name, v.Version)
-		dir := fmt.Sprintf("%s/%s/%s", f.VendorFolderName, "teraform", v.Name)
+		dir := fmt.Sprintf("%s/%s/%s", f.VendorFolderName, "modules", v.Name)
 		err := get(url, dir)
 		if err != nil {
 			return err
