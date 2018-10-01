@@ -41,7 +41,7 @@ type Package struct {
 func (f *Furyconf) Download() error {
 	for _, v := range f.Roles {
 		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, rolesRepo, v.Name, v.Version)
-		dir := fmt.Sprintf("%s/%s/%s", f.VendorFolderName, "ansible", v.Name)
+		dir := fmt.Sprintf("%s/%s/%s", f.VendorFolderName, "roles", v.Name)
 		err := get(url, dir)
 		if err != nil {
 			return err
