@@ -1,14 +1,10 @@
 # Furyctl
 
+## Install
+Get the right binary for you in `bin` folder (this will be removed shortly)
 
-git::https://gitlab+deploy-token-1:zU92yQ4reCQyqeE_i1KL@git.incubator.sh/sighup/fury.git//test-base-machine
+## Usage
+Write a [`Furyfile.yml`](Furyfile.yml) in the root of your project and then simply run `furyctl`
 
-
-# Go-discover
-
-go get -u github.com/hashicorp/go-discover/cmd/discover
-
-discover -q addrs provider=aws tag_key=KubernetesCluster tag_value=flyer-tech-cluster
-
-# BUGS
-- doesn't cleanup old downloads no longer in Furyfile
+## Contributing
+We still use `dep` as golang package manager. Once you have that installed you can run `dep ensure` and `go build` or `go install` should run without problems

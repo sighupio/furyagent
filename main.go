@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	viper.SetConfigFile(configFile)
 	viper.SetConfigType("yml")
 	viper.AddConfigPath(".")
+	viper.SetConfigName(configFile)
 	configuration := new(Furyconf)
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
