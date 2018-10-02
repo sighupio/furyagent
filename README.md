@@ -1,7 +1,7 @@
 # Furyctl
 
 ## Install
-Get the right binary for you in `bin` folder (this will be removed shortly)
+Get the right binary for you in the [latest release](https://git.incubator.sh/sighup/furyctl/tags)
 
 ## Usage
 Write a [`Furyfile.yml`](Furyfile.yml) in the root of your project and then simply run `furyctl`
