@@ -32,3 +32,8 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+
+[[constraint]]
+  name = "github.com/ulikunitz/xz"
+  version = "0.5.4"
