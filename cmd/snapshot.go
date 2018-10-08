@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -60,31 +61,49 @@ func init() {
 	// snapshotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func createSnapshotFile() string {
-	//kvs := []kv{{"foo1", "bar1"}, {"foo2", "bar2"}, {"foo3", "bar3"}}
-	//Crea un local etcd server
-	clusterN := 1
-	urls := newEmbedURLs(clusterN * 2)
-	cURLs, pURLs := urls[:clusterN], urls[clusterN:]
+func embedEtcdServer(name string, state string, initialCluster string, urls map[string][]url.URL) (*embed.Etcd, error) {
 	cfg := embed.NewConfig()
 	cfg.Logger = "zap"
 	cfg.LogOutputs = []string{"/dev/null"}
 	cfg.Debug = false
-	cfg.Name = "default"
-	cfg.ClusterState = "new"
-	cfg.LCUrls, cfg.ACUrls = cURLs, cURLs
-	cfg.LPUrls, cfg.APUrls = pURLs, pURLs
-	cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, pURLs[0].String())
+	cfg.Name = name
+	cfg.ClusterState = state
+	log.Println("acUrls:", urls["acUrls"])
+	log.Println("apUrls:", urls["apUrls"])
+	log.Println("lcUrls:", urls["lcUrls"])
+	log.Println("lpUrls:", urls["lpUrls"])
+	cfg.LCUrls, cfg.ACUrls = urls["lcUrls"], urls["acUrls"]
+	cfg.LPUrls, cfg.APUrls = urls["lpUrls"], urls["apUrls"]
+	//non sono sicura del lpurls come initialcluster
+	cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, urls["lpUrls"][0].String())
+	log.Println("initialCluster: ", cfg.InitialCluster)
+	//cfg.InitialCluster = initialCluster
+	//snapshot sara' salvato in /tmp/time.Now().Nanosecond())
 	cfg.Dir = filepath.Join(os.TempDir(), fmt.Sprint(time.Now().Nanosecond()))
 	srv, err := embed.StartEtcd(cfg) //-> launch server
+
+	return srv, err
+}
+
+func createSnapshotFile() string {
+	clusterN := 1
+	//newEmbedURLs crea degli url localhost con porta a caso per imitare un cluster,
+	//va sostituito con i veri valori di un cluster
+	urls := newEmbedURLs(clusterN * 2)
+	cURLs, pURLs := urls[:clusterN], urls[clusterN:]
+	urlsMap := map[string][]url.URL{"lcUrls": cURLs, "acUrls": cURLs, "lpUrls": pURLs, "apUrls": pURLs}
+	name := "default"
+	state := "new"
+	initialCluster := fmt.Sprintf("%s=%s", name, cURLs[0].String())
+	srv, err := embedEtcdServer(name, state, initialCluster, urlsMap)
 
 	if err != nil {
 		fmt.Println(err.Error)
 	}
-	defer func() {
+	/*defer func() {
 		os.RemoveAll(cfg.Dir)
 		srv.Close()
-	}()
+	}()*/
 	select {
 	case <-srv.Server.ReadyNotify():
 		log.Printf("Server is ready!")
@@ -93,16 +112,15 @@ func createSnapshotFile() string {
 	}
 
 	//configure and create etcd client
-	ccfg := clientv3.Config{Endpoints: []string{cfg.ACUrls[0].String()}}
+	endpoints := cURLs[0]
+	ccfg := clientv3.Config{Endpoints: []string{endpoints.String()}}
 	cli, err := clientv3.New(ccfg)
 	if err != nil {
 		fmt.Println(err.Error)
 	}
 	defer cli.Close()
 	//put some key value pairs to etcd
-	//for i := range kvs {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	//_, err = cli.Put(ctx, kvs[i].k, kvs[i].v)
 	_, err = cli.Put(ctx, "key1", "value1")
 	_, err = cli.Put(ctx, "key2", "value2")
 	_, err = cli.Put(ctx, "key3", "value3")
@@ -110,11 +128,9 @@ func createSnapshotFile() string {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//	}
 
 	//create snapshot manager
 	sp := snapshot.NewV3(zap.NewExample())
-
 	//determine snapshot path
 	dpPath := filepath.Join(os.TempDir(), fmt.Sprintf("snapshot%d.db", time.Now().Nanosecond()))
 	//save it
@@ -122,7 +138,7 @@ func createSnapshotFile() string {
 		fmt.Println(err)
 	}
 
-	os.RemoveAll(cfg.Dir)
+	//os.RemoveAll(cfg.Dir)
 	srv.Close()
 	return dpPath
 }
