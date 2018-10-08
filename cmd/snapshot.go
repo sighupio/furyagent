@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -26,7 +25,6 @@ import (
 	"github.com/spf13/cobra"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/clientv3/snapshot"
-	"go.etcd.io/etcd/embed"
 	"go.uber.org/zap"
 )
 
@@ -41,17 +39,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("called snapshot")
-		//first should get etcd cluster details from a config file
-		//etcd.config.yaml as parameter. but for now we just use localhost
-		ports := []int{2379, 2380}
-		urls := generateEmbedURLs(ports)
-		clusterN := len(urls) / 2
-		cURLs, pURLs := urls[:clusterN], urls[clusterN:]
-		urlsMap := map[string][]url.URL{"lcUrls": cURLs, "acUrls": cURLs, "lpUrls": pURLs, "apUrls": pURLs}
+		//config should be read from a file
+		cfg := clientv3.Config{
+			Endpoints:   []string{"localhost:2379"},
+			DialTimeout: 5 * time.Second,
+		}
 
-		dbpath := createSnapshotFile(urlsMap)
-
+		dbpath := createSnapshot(cfg)
 		fmt.Println(dbpath)
 	},
 }
@@ -70,73 +64,17 @@ func init() {
 	// snapshotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func embedEtcdServer(name string, state string, initialCluster string, urls map[string][]url.URL) (*embed.Etcd, error) {
-
-	cfg := embed.NewConfig()
-	cfg.Logger = "zap"
-	cfg.LogOutputs = []string{"/dev/null"}
-	cfg.Debug = false
-	cfg.Name = name
-	cfg.ClusterState = state
-	log.Println("acUrls:", urls["acUrls"])
-	log.Println("apUrls:", urls["apUrls"])
-	log.Println("lcUrls:", urls["lcUrls"])
-	log.Println("lpUrls:", urls["lpUrls"])
-	cfg.LCUrls, cfg.ACUrls = urls["lcUrls"], urls["acUrls"]
-	cfg.LPUrls, cfg.APUrls = urls["lpUrls"], urls["apUrls"]
-	//cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, urls["lpUrls"][0].String())
-	cfg.InitialCluster = initialCluster
-	log.Println("initialCluster: ", initialCluster)
-	//snapshot sara' salvato in /tmp/time.Now().Nanosecond())
-	cfg.Dir = filepath.Join(os.TempDir(), fmt.Sprint(time.Now().Nanosecond()))
-	srv, err := embed.StartEtcd(cfg) //-> launch server
-
-	return srv, err
-}
-
-func createSnapshotFile(urlsMap map[string][]url.URL) string {
-	name := "default"
-	state := "existing"
-	initialCluster := fmt.Sprintf("%s=%s", name, urlsMap["lpUrls"][0].String())
-	srv, err := embedEtcdServer(name, state, initialCluster, urlsMap)
-
+func createSnapshot(cfg clientv3.Config) string {
+	cli, err := clientv3.New(cfg)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
-	/*defer func() {
-		os.RemoveAll(cfg.Dir)
-		srv.Close()
-	}()*/
-	select {
-	case <-srv.Server.ReadyNotify():
-		log.Printf("Server is ready!")
-	case <-time.After(3 * time.Second):
-		fmt.Println("failed to start embed.Etcd for creating snapshots")
-	}
+	defer cli.Close()
 
-	//configure etcd client
-	endpoints := urlsMap["lcUrls"][0]
-	ccfg := clientv3.Config{Endpoints: []string{endpoints.String()}}
-
-	//create snapshot manager
 	sp := snapshot.NewV3(zap.NewExample())
-	//determine snapshot path
 	dpPath := filepath.Join(os.TempDir(), fmt.Sprintf("snapshot%d.db", time.Now().Nanosecond()))
-	//save it
-	if err = sp.Save(context.Background(), ccfg, dpPath); err != nil {
+	if err = sp.Save(context.Background(), cfg, dpPath); err != nil {
 		fmt.Println(err)
 	}
-
-	//os.RemoveAll(cfg.Dir)
-	srv.Close()
 	return dpPath
-}
-
-func generateEmbedURLs(ports []int) (urls []url.URL) {
-	urls = make([]url.URL, len(ports))
-	for i, port := range ports {
-		u, _ := url.Parse(fmt.Sprintf("http://localhost:%d", port))
-		urls[i] = *u
-	}
-	return urls
 }
