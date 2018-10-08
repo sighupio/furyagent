@@ -26,14 +26,36 @@
 
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/go-getter"
+
+[[constraint]]
+  name = "github.com/mitchellh/go-homedir"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/spf13/cobra"
+  version = "0.0.3"
+
+[[constraint]]
   name = "github.com/spf13/viper"
-  version = "1.1.0"
+  version = "1.2.1"
+
+[[constraint]]
+  branch = "master"
+  name = "go.etcd.io/etcd"
+
+[[constraint]]
+  name = "go.uber.org/zap"
+  version = "1.9.1"
+
+
+[[override]]
+  name = "go.etcd.io/bbolt"
+  source = "https://github.com/coreos/bbolt"
+  revision = "48ea1b39c25fc1bab3506fbc712ecbaa842c4d2d"
+
 
 [prune]
   go-tests = true
   unused-packages = true
-
-
-[[constraint]]
-  name = "github.com/ulikunitz/xz"
-  version = "0.5.4"
