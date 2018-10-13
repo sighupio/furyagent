@@ -18,30 +18,41 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var dev bool
 
 // installCmd represents the install command
 var installCmd = &cobra.Command{
 	Use:   "install",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Download dependencies specified in Furyfile.yml",
+	Long:  "Download dependencies specified in Furyfile.yml",
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println("install called")
-		install()
+		dev = cmd.Flag("dev").Changed
+		install(dev)
 	},
 }
 
-func install() {
-	configuration, err := readConfig()
-	if err != nil {
-		log.Fatalf("something wrong with the configuration, %v", err)
+func install(dev bool) {
+	viper.SetConfigType("yml")
+	viper.AddConfigPath(".")
+	viper.SetConfigName(configFile)
+	configuration := new(Furyconf)
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file, %s", err)
 	}
-	err = configuration.Download()
+	err := viper.Unmarshal(configuration)
+	if err != nil {
+		log.Fatalf("unable to decode into struct, %v", err)
+	}
+
+	err = configuration.Validate()
+	if err != nil {
+		log.Println("ERROR VALIDATING: ", err)
+	}
+
+	err = configuration.Download(dev)
 	if err != nil {
 		log.Println("ERROR DOWNLOADING: ", err)
 	}
@@ -50,6 +61,7 @@ func install() {
 
 func init() {
 	rootCmd.AddCommand(installCmd)
+	installCmd.PersistentFlags().Bool("dev", false, "Download from development repo")
 
 	// Here you will define your flags and configuration settings.
 

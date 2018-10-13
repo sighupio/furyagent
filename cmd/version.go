@@ -16,15 +16,13 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// initCmd represents the init command
-var initCmd = &cobra.Command{
-	Use:   "init",
+// versionCmd represents the version command
+var versionCmd = &cobra.Command{
+	Use:   "version",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -33,43 +31,20 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		c, err := readConfig()
-		if err != nil {
-			log.Fatalf("something wrong with the configuration, %v", err)
-		}
-		fmt.Println(c)
+		fmt.Println("Furyctl version ", VERSION)
 	},
 }
 
-func readConfig() (*Furyconf, error) {
-	viper.SetConfigType("yml")
-	viper.AddConfigPath(".")
-	viper.SetConfigName(configFile)
-	configuration := new(Furyconf)
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file, %s", err)
-	}
-	err := viper.Unmarshal(configuration)
-	if err != nil {
-		log.Fatalf("unable to decode into struct, %v", err)
-	}
-	err = configuration.Validate()
-	if err != nil {
-		log.Println("ERROR VALIDATING: ", err)
-	}
-	return configuration, err
-}
-
 func init() {
-	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(versionCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// versionCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
