@@ -15,38 +15,49 @@
 package cmd
 
 import (
-	"fmt"
-	"math/rand"
-	"net/url"
-	"os"
-	"path/filepath"
-	"time"
+	"context"
+	"log"
 
 	"github.com/spf13/cobra"
+	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/clientv3/snapshot"
-	"go.etcd.io/etcd/embed"
-
 	"go.uber.org/zap"
 )
 
+var name string
+var dataDir string
+var initialCluster string
+var initialClusterToken string
+var initialAdvertisePeerUrls []string
+
 // restoreCmd represents the restore command
 var restoreCmd = &cobra.Command{
-	Use:   "restore",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "restore <filename>",
+	Short: "Restores an etcd member snapshot to an etcd directory",
+	Long:  "Restores an etcd member snapshot to an etcd directory",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("restore called")
-		restoreCluster(1, "/tmp/snapshot747756240.db")
+		//fmt.Println("restore called")
+		dbPath := args[0]
+		cfg := snapshot.RestoreConfig{
+			SnapshotPath:        dbPath,
+			Name:                name,
+			OutputDataDir:       dataDir,
+			InitialCluster:      initialCluster,
+			InitialClusterToken: initialClusterToken,
+			PeerURLs:            initialAdvertisePeerUrls,
+		}
+		restore(dbPath, cfg)
 	},
 }
 
 func init() {
-	etcdCmd.AddCommand(restoreCmd)
+	snapshotCmd.AddCommand(restoreCmd)
+	restoreCmd.PersistentFlags().StringVar(&name, "name", "default", "Human-readable name for this member")
+	restoreCmd.PersistentFlags().StringVar(&dataDir, "data-dir", "", "Path to the data directory")
+	restoreCmd.PersistentFlags().StringVar(&initialCluster, "initial-cluster", "default=http://localhost:2380", "Initial cluster configuration for restore bootstrap")
+	restoreCmd.PersistentFlags().StringVar(&initialClusterToken, "initial-cluster-token", "etcd-cluster", "Initial cluster token for the etcd cluster during restore bootstrap")
+	restoreCmd.PersistentFlags().StringArrayVar(&initialAdvertisePeerUrls, "initial-advertise-peer-urls", []string{"http://localhost:2380"}, "List of this member's peer URLs to advertise to the rest of the cluster")
 
 	// Here you will define your flags and configuration settings.
 
@@ -59,85 +70,26 @@ func init() {
 	// restoreCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func restoreCluster(clusterN int, dbPath string) (
-	cURLs []url.URL,
-	pURLs []url.URL,
-	srvs []*embed.Etcd) {
-	urls := newEmbedURLs(clusterN * 2)
-	cURLs, pURLs = urls[:clusterN], urls[clusterN:]
-
-	const testClusterTkn = "tkn"
-
-	ics := ""
-	for i := 0; i < clusterN; i++ {
-		ics += fmt.Sprintf(",%d=%s", i, pURLs[i].String())
+func restore(dbPath string, cfg snapshot.RestoreConfig) {
+	sp := snapshot.NewV3(zap.NewExample())
+	if err := sp.Restore(cfg); err != nil {
+		log.Fatal(err)
 	}
-	fmt.Println("icd: ", ics)
-	ics = ics[1:]
-
-	cfgs := make([]*embed.Config, clusterN)
-	for i := 0; i < clusterN; i++ {
-		cfg := embed.NewConfig()
-		cfg.Logger = "zap"
-		cfg.LogOutputs = []string{"/dev/null"}
-		cfg.Debug = false
-		cfg.Name = fmt.Sprintf("%d", i)
-		cfg.InitialClusterToken = testClusterTkn
-		cfg.ClusterState = "existing"
-		//lcurls -> listen-client-urls
-		//lpurls -> listen-peer-urls
-		//acurls -> adverties-client-urls
-		//apurls -> adverties-peer-urls
-		cfg.LCUrls, cfg.ACUrls = []url.URL{cURLs[i]}, []url.URL{cURLs[i]}
-		cfg.LPUrls, cfg.APUrls = []url.URL{pURLs[i]}, []url.URL{pURLs[i]}
-		cfg.InitialCluster = ics
-		cfg.Dir = filepath.Join(os.TempDir(), fmt.Sprint(time.Now().Nanosecond()+i))
-
-		sp := snapshot.NewV3(zap.NewExample())
-		if err := sp.Restore(snapshot.RestoreConfig{
-			SnapshotPath:        dbPath,
-			Name:                cfg.Name,
-			OutputDataDir:       cfg.Dir,
-			PeerURLs:            []string{pURLs[i].String()},
-			InitialCluster:      ics,
-			InitialClusterToken: cfg.InitialClusterToken,
-		}); err != nil {
-			fmt.Println(err)
-		}
-		cfgs[i] = cfg
-	}
-
-	sch := make(chan *embed.Etcd)
-	for i := range cfgs {
-		go func(idx int) {
-			srv, err := embed.StartEtcd(cfgs[idx])
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			<-srv.Server.ReadyNotify()
-			sch <- srv
-		}(i)
-	}
-
-	srvs = make([]*embed.Etcd, clusterN)
-	for i := 0; i < clusterN; i++ {
-		select {
-		case srv := <-sch:
-			srvs[i] = srv
-		case <-time.After(5 * time.Second):
-			fmt.Printf("#%d: failed to start embed.Etcd\n", i)
-		}
-	}
-	return cURLs, pURLs, srvs
 }
 
-func newEmbedURLs(n int) (urls []url.URL) {
-	urls = make([]url.URL, n)
-	for i := 0; i < n; i++ {
-		rand.Seed(int64(time.Now().Nanosecond()))
-		u, _ := url.Parse(fmt.Sprintf("unix://localhost:%d", rand.Intn(45000)))
-		urls[i] = *u
+func checkKeyvalue(key string, value string) {
+	var cli *clientv3.Client
+	cli, err := clientv3.New(clientv3.Config{Endpoints: []string{"http://localhost:2379"}})
+	if err != nil {
+		log.Fatal(err)
 	}
-	return urls
+	defer cli.Close()
+	var gresp *clientv3.GetResponse
+	gresp, err = cli.Get(context.Background(), key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("val: ", gresp.Count)
+	log.Println("val: ", gresp.Kvs)
 }

@@ -15,38 +15,18 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
-	"time"
-
 	"github.com/spf13/cobra"
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/clientv3/snapshot"
-	"go.uber.org/zap"
 )
+
+var endpoint string
 
 // snapshotCmd represents the snapshot command
 var snapshotCmd = &cobra.Command{
 	Use:   "snapshot",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Manages etcd node snapshots",
+	Long:  `Manages etcd node snapshots`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//config should be read from a file
-		cfg := clientv3.Config{
-			Endpoints:   []string{"localhost:2379"},
-			DialTimeout: 5 * time.Second,
-		}
-
-		dbpath := createSnapshot(cfg)
-		fmt.Println(dbpath)
+		cmd.Help()
 	},
 }
 
@@ -62,19 +42,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:55
 	// snapshotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func createSnapshot(cfg clientv3.Config) string {
-	cli, err := clientv3.New(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cli.Close()
-
-	sp := snapshot.NewV3(zap.NewExample())
-	dpPath := filepath.Join(os.TempDir(), fmt.Sprintf("snapshot%d.db", time.Now().Nanosecond()))
-	if err = sp.Save(context.Background(), cfg, dpPath); err != nil {
-		fmt.Println(err)
-	}
-	return dpPath
 }

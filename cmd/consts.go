@@ -11,11 +11,15 @@ import (
 )
 
 const (
-	configFile              = "Furyfile"
-	protocol                = "git::ssh://"
-	modulesRepo             = "git@git.incubator.sh/sighup/fury-modules.git"
-	rolesRepo               = "git@git.incubator.sh/sighup/fury-roles.git"
-	katalogRepo             = "git@git.incubator.sh/sighup/fury-katalog.git"
+	configFile     = "Furyfile"
+	protocol       = "git::ssh://"
+	modulesRepo    = "git@git.sighup.io/sighup/fury-modules.git"
+	rolesRepo      = "git@git.sighup.io/sighup/fury-roles.git"
+	katalogRepo    = "git@git.sighup.io/sighup/fury-katalog.git"
+	modulesRepoDev = "git@git.incubator.sh/sighup/fury-modules.git"
+	rolesRepoDev   = "git@git.incubator.sh/sighup/fury-roles.git"
+	katalogRepoDev = "git@git.incubator.sh/sighup/fury-katalog.git"
+
 	defaultVendorFolderName = "vendor"
 )
 
@@ -38,9 +42,23 @@ type Package struct {
 }
 
 // Download is the main function to put all the files in vendor folder
-func (f *Furyconf) Download() error {
+func (f *Furyconf) Download(dev bool) error {
+	var rolesRepoURL string
+	var modulesRepoURL string
+	var katalogRepoURL string
+
+	if dev {
+		rolesRepoURL = rolesRepoDev
+		modulesRepoURL = modulesRepoDev
+		katalogRepoURL = katalogRepoDev
+	} else {
+		rolesRepoURL = rolesRepo
+		modulesRepoURL = modulesRepo
+		katalogRepoURL = katalogRepo
+	}
+
 	for _, v := range f.Roles {
-		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, rolesRepo, v.Name, v.Version)
+		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, rolesRepoURL, v.Name, v.Version)
 		dir := fmt.Sprintf("%s/%s/%s", f.VendorFolderName, "roles", v.Name)
 		err := get(url, dir)
 		if err != nil {
@@ -48,7 +66,7 @@ func (f *Furyconf) Download() error {
 		}
 	}
 	for _, v := range f.Modules {
-		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, modulesRepo, v.Name, v.Version)
+		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, modulesRepoURL, v.Name, v.Version)
 		dir := fmt.Sprintf("%s/%s/%s", f.VendorFolderName, "modules", v.Name)
 		err := get(url, dir)
 		if err != nil {
@@ -56,7 +74,7 @@ func (f *Furyconf) Download() error {
 		}
 	}
 	for _, v := range f.Bases {
-		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, katalogRepo, v.Name, v.Version)
+		url := fmt.Sprintf("%s%s//%s?ref=%s", protocol, katalogRepoURL, v.Name, v.Version)
 		dir := fmt.Sprintf("%s/%s/%s", f.VendorFolderName, "bases", v.Name)
 		err := get(url, dir)
 		if err != nil {
