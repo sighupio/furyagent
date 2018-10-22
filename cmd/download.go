@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
@@ -27,6 +28,8 @@ import (
 
 //var containerName string
 //var s3Endpoint string
+
+const BUFFERSIZE = 1024
 
 // downloadCmd represents the download command
 var downloadCmd = &cobra.Command{
@@ -110,40 +113,54 @@ func downloadS3(config stow.ConfigMap, itemName string) {
 		log.Fatal(err)
 	}
 
-	log.Printf("Item %s found\n", item.Name())
+	name := item.Name()
+	size, err := item.Size()
+	log.Printf("Item %s found [size: %d]\n", name, size)
 
-	//ATTENZIONE DOPO QUESTA LINEA NON E' TESTATA!!!
-	// DOVREBBE SCRIVERE ITEM IN FILE
-	data := make([]byte, 1024)
-	writer, err := os.Create(itemName)
+	log.Printf("Saving item %s ...", name)
+	err = saveItem(item, name)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Saved item %s [size: %d]\n", name, fileSize(name))
 
-	defer writer.Close()
+}
+
+func saveItem(item stow.Item, path string) error {
+	data := make([]byte, BUFFERSIZE)
 
 	reader, err := item.Open()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		reader.Close()
+		file.Close()
+	}()
+
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
 
 	for {
 		n, err := reader.Read(data)
-		log.Println(n)
 		if err != nil {
 			if err == io.EOF {
-				n2, err := writer.Write(data)
-				log.Println(n2)
+				_, err := writer.Write(data[:n])
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				break
 			}
-			log.Fatal(err)
+			return err
 		}
-		n2, err := writer.Write(data)
-		log.Println(n2)
+		_, err = writer.Write(data[:n])
 	}
+	return nil
 
-	defer reader.Close()
 }
