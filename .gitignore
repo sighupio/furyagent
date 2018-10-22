@@ -1,3 +1,4 @@
 external_fury
 vendor
 bin/furyctl_*
+*.db
