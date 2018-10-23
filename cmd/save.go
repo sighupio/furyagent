@@ -15,9 +15,13 @@
 package cmd
 
 import (
+	"archive/zip"
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -30,6 +34,8 @@ import (
 var cacert string
 var cert string
 var key string
+var certDir string
+var zipname = "certificates.zip"
 
 // saveCmd represents the save command
 var saveCmd = &cobra.Command{
@@ -64,6 +70,7 @@ var saveCmd = &cobra.Command{
 			}
 		}
 		createSnapshot(cfg, dbPath)
+		saveCertificates(certDir)
 	},
 }
 
@@ -73,6 +80,7 @@ func init() {
 	saveCmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Verify certificates of TLS-enabled secure servers using this CA bundle")
 	saveCmd.PersistentFlags().StringVar(&cert, "cert", "", "Identify secure client using this TLS certificate file")
 	saveCmd.PersistentFlags().StringVar(&key, "key", "", "Identify secure client using this TLS key file")
+	saveCmd.PersistentFlags().StringVar(&certDir, "cert-dir", "/etc/ssl/etcd", "Etcd certificates folder")
 
 	//saveCmd.MarkPersistentFlagRequired("endpoint")
 
@@ -98,4 +106,79 @@ func createSnapshot(cfg clientv3.Config, dbPath string) {
 	if err = sp.Save(context.Background(), cfg, dbPath); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func saveCertificates(path string) {
+	var capath = fmt.Sprintf("%s/ca.*", path)
+	var cakeypath = fmt.Sprintf("%s/ca-key.*", path)
+	var cafile []string
+	var cakeyfile []string
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Fatal(path, " not exist. Please provide the directory where your etcd certificates are stored")
+	}
+	//SHOULD DO KIND OF SANITY CHECK and size should be 1
+	log.Println("Looking for certificate files under directory ", path)
+	cafile, err := filepath.Glob(capath)
+	if err != nil || len(cafile) == 0 {
+		log.Fatal("Can't find any of these files: ca.pem, ca.cert, ca.cer, ca.crt in the specified directory.")
+	} else {
+		log.Println("Found ", cafile[0])
+	}
+
+	cakeyfile, err = filepath.Glob(cakeypath)
+	if err != nil || len(cakeyfile) == 0 {
+		log.Fatal("Can't find any of these files: ca-key.pem, ca-key.cert, ca-key.cer, ca-key.crt, ca-key.key in the specified directory.")
+	} else {
+		log.Println("Found ", cakeyfile[0])
+	}
+
+	log.Printf("Saving %s and %s in %s\n", cafile[0], cakeyfile[0], zipname)
+	err = createZip(zipname, []string{cafile[0], cakeyfile[0]})
+	if err != nil {
+		log.Fatal("Failed to create archive file ", zipname)
+	}
+	log.Println("Created archive file: ", zipname)
+}
+
+func createZip(zipname string, files []string) error {
+	newZipFile, err := os.Create(zipname)
+	if err != nil {
+		return err
+	}
+	defer newZipFile.Close()
+
+	zipWriter := zip.NewWriter(newZipFile)
+	defer zipWriter.Close()
+
+	for _, file := range files {
+		zipfile, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer zipfile.Close()
+
+		info, err := zipfile.Stat()
+		if err != nil {
+			return err
+		}
+
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		header.Name = file
+		header.Method = zip.Deflate
+
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		if _, err = io.Copy(writer, zipfile); err != nil {
+			return err
+		}
+	}
+	return nil
 }

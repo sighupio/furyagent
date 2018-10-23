@@ -58,6 +58,9 @@ func init() {
 	restoreCmd.PersistentFlags().StringVar(&initialCluster, "initial-cluster", "default=http://localhost:2380", "Initial cluster configuration for restore bootstrap")
 	restoreCmd.PersistentFlags().StringVar(&initialClusterToken, "initial-cluster-token", "etcd-cluster", "Initial cluster token for the etcd cluster during restore bootstrap")
 	restoreCmd.PersistentFlags().StringArrayVar(&initialAdvertisePeerUrls, "initial-advertise-peer-urls", []string{"http://localhost:2380"}, "List of this member's peer URLs to advertise to the rest of the cluster")
+	restoreCmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Verify certificates of TLS-enabled secure servers using this CA bundle")
+	restoreCmd.PersistentFlags().StringVar(&cert, "cert", "", "Identify secure client using this TLS certificate file")
+	restoreCmd.PersistentFlags().StringVar(&key, "key", "", "Identify secure client using this TLS key file")
 
 	// Here you will define your flags and configuration settings.
 
