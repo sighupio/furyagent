@@ -162,5 +162,4 @@ func saveItem(item stow.Item, path string) error {
 		_, err = writer.Write(data[:n])
 	}
 	return nil
-
 }
