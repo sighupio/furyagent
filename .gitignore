@@ -2,3 +2,5 @@ external_fury
 vendor
 bin
 *.db
+*.zip
+certs

@@ -80,7 +80,7 @@ func init() {
 	saveCmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Verify certificates of TLS-enabled secure servers using this CA bundle")
 	saveCmd.PersistentFlags().StringVar(&cert, "cert", "", "Identify secure client using this TLS certificate file")
 	saveCmd.PersistentFlags().StringVar(&key, "key", "", "Identify secure client using this TLS key file")
-	saveCmd.PersistentFlags().StringVar(&certDir, "cert-dir", "/etc/ssl/etcd", "Etcd certificates folder")
+	saveCmd.PersistentFlags().StringVar(&certDir, "certdir", "/etc/ssl/etcd", "Etcd certificates folder")
 
 	//saveCmd.MarkPersistentFlagRequired("endpoint")
 

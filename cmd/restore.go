@@ -15,11 +15,9 @@
 package cmd
 
 import (
-	"context"
 	"log"
 
 	"github.com/spf13/cobra"
-	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.uber.org/zap"
 )
@@ -80,7 +78,7 @@ func restore(dbPath string, cfg snapshot.RestoreConfig) {
 	}
 }
 
-func checkKeyvalue(key string, value string) {
+/*func checkKeyvalue(key string, value string) {
 	var cli *clientv3.Client
 	cli, err := clientv3.New(clientv3.Config{Endpoints: []string{"http://localhost:2379"}})
 	if err != nil {
@@ -95,4 +93,4 @@ func checkKeyvalue(key string, value string) {
 
 	log.Println("val: ", gresp.Count)
 	log.Println("val: ", gresp.Kvs)
-}
+}*/

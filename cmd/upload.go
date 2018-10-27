@@ -37,14 +37,18 @@ var containerName string
 // uploadCmd represents the upload command
 var uploadCmd = &cobra.Command{
 	Use:   "upload <filepath>",
-	Short: "Upload a db snatshop to S3(or S3 compliant) storage",
-	Long:  "Upload a db snatshop to S3(or S3 compliant) storage",
-	Args:  cobra.ExactArgs(1),
+	Short: "Upload file(s) to a S3(or S3 compliant) storage",
+	Long:  "Upload file(s) to a S3(or S3 compliant) storage",
+	Args:  cobra.RangeArgs(1, 10),
 	Run: func(cmd *cobra.Command, args []string) {
 		kind := KIND_S3
-		path := args[0]
+		paths := args
 		setEndpoint = cmd.Flags().Changed("endpoint")
-		upload(kind, path)
+		log.Printf("Furyctl is going to upload %d objects : %s", len(paths), paths)
+		for i, path := range paths {
+			log.Printf("%d. object: ", i+1)
+			upload(kind, path)
+		}
 	},
 }
 
