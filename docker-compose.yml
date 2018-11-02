@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+  etcd:
+    image: gcr.io/etcd-development/etcd:v3.3.10
+    entrypoint:
+      - /usr/local/bin/etcd
+      - "--name"
+      - "s1"
+      - "--data-dir"
+      - "/etcd-data"
+      - "--listen-client-urls"
+      - "http://0.0.0.0:2379"
+      - "--advertise-client-urls"
+      - "http://0.0.0.0:2379"
+      - "--listen-peer-urls"
+      - "http://0.0.0.0:2380"
+      - "--initial-advertise-peer-urls"
+      - "http://0.0.0.0:2380"
+      - "--initial-cluster"
+      - "s1=http://0.0.0.0:2380"
+      - "--initial-cluster-token"
+      - "tkn"
+      - "--initial-cluster-state"
+      - "new"
+    volumes:
+    - etcd_data:/etcd-data
+    ports: 
+    - 2379:2379
+    - 2380:2380
+  minio:
+    image: minio/minio
+    ports:
+    - 9000:9000
+    environment:
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=miniostorage
+    command: "server --address 0.0.0.0:9000 /data"
+    volumes:
+    - minio_data:/data
+    
+volumes:
+  minio_data:
+  etcd_data:
