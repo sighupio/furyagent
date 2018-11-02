@@ -15,10 +15,8 @@
 package cmd
 
 import (
-	"archive/zip"
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -80,6 +78,7 @@ func init() {
 	saveCmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Verify certificates of TLS-enabled secure servers using this CA bundle")
 	saveCmd.PersistentFlags().StringVar(&cert, "cert", "", "Identify secure client using this TLS certificate file")
 	saveCmd.PersistentFlags().StringVar(&key, "key", "", "Identify secure client using this TLS key file")
+<<<<<<< HEAD
 	saveCmd.PersistentFlags().StringVar(&certDir, "certdir", "/etc/ssl/etcd", "Etcd certificates folder")
 
 	//saveCmd.MarkPersistentFlagRequired("endpoint")
@@ -93,6 +92,9 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// saveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+=======
+	saveCmd.PersistentFlags().StringVar(&certDir, "cert-dir", "/etc/ssl/etcd", "Etcd certificates folder")
+>>>>>>> cleanup and moving stuff to storage library
 }
 
 func createSnapshot(cfg clientv3.Config, dbPath string) {
@@ -101,7 +103,6 @@ func createSnapshot(cfg clientv3.Config, dbPath string) {
 		log.Fatal(err)
 	}
 	defer cli.Close()
-
 	sp := snapshot.NewV3(zap.NewExample())
 	if err = sp.Save(context.Background(), cfg, dbPath); err != nil {
 		fmt.Println(err)
@@ -134,51 +135,9 @@ func saveCertificates(path string) {
 	}
 
 	log.Printf("Saving %s and %s in %s\n", cafile[0], cakeyfile[0], zipname)
-	err = createZip(zipname, []string{cafile[0], cakeyfile[0]})
+	err = storage.ZipArchive(zipname, []string{cafile[0], cakeyfile[0]}...)
 	if err != nil {
 		log.Fatal("Failed to create archive file ", zipname)
 	}
 	log.Println("Created archive file: ", zipname)
-}
-
-func createZip(zipname string, files []string) error {
-	newZipFile, err := os.Create(zipname)
-	if err != nil {
-		return err
-	}
-	defer newZipFile.Close()
-
-	zipWriter := zip.NewWriter(newZipFile)
-	defer zipWriter.Close()
-
-	for _, file := range files {
-		zipfile, err := os.Open(file)
-		if err != nil {
-			return err
-		}
-		defer zipfile.Close()
-
-		info, err := zipfile.Stat()
-		if err != nil {
-			return err
-		}
-
-		header, err := zip.FileInfoHeader(info)
-		if err != nil {
-			return err
-		}
-
-		header.Name = file
-		header.Method = zip.Deflate
-
-		writer, err := zipWriter.CreateHeader(header)
-		if err != nil {
-			return err
-		}
-
-		if _, err = io.Copy(writer, zipfile); err != nil {
-			return err
-		}
-	}
-	return nil
 }
