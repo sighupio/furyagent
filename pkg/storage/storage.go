@@ -48,6 +48,7 @@ func Init(cfg *Config) (*Data, error) {
 				s3.ConfigAccessKeyID: cfg.AccessKey,
 				s3.ConfigSecretKey:   cfg.SecretKey,
 				s3.ConfigEndpoint:    cfg.URL,
+				// s3.ConfigRegion:      "",
 			}
 		} else {
 			config = stow.ConfigMap{
