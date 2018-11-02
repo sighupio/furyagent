@@ -1,4 +1,4 @@
-// Copyright © 2018 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2018 Sighup SRL support@sighup.io
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -56,19 +56,6 @@ func init() {
 	restoreCmd.PersistentFlags().StringVar(&initialCluster, "initial-cluster", "default=http://localhost:2380", "Initial cluster configuration for restore bootstrap")
 	restoreCmd.PersistentFlags().StringVar(&initialClusterToken, "initial-cluster-token", "etcd-cluster", "Initial cluster token for the etcd cluster during restore bootstrap")
 	restoreCmd.PersistentFlags().StringArrayVar(&initialAdvertisePeerUrls, "initial-advertise-peer-urls", []string{"http://localhost:2380"}, "List of this member's peer URLs to advertise to the rest of the cluster")
-	restoreCmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Verify certificates of TLS-enabled secure servers using this CA bundle")
-	restoreCmd.PersistentFlags().StringVar(&cert, "cert", "", "Identify secure client using this TLS certificate file")
-	restoreCmd.PersistentFlags().StringVar(&key, "key", "", "Identify secure client using this TLS key file")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// restoreCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// restoreCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func restore(dbPath string, cfg snapshot.RestoreConfig) {

@@ -12,10 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package etcd
 
-import "./cmd"
+type Config struct {
+	Name string
+}
 
-func main() {
-	cmd.Execute()
+func (c *Config) Snapshot() error {
+	return nil
+}
+
+func (c *Config) Restore() error {
+	return nil
 }
