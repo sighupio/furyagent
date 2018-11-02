@@ -4,7 +4,26 @@
 Get the right binary for you in the [latest release](https://git.incubator.sh/sighup/furyctl/tags)
 
 ## Usage
+
+```
+furyctl
+├── install
+├── agent
+├── configure
+│   ├── node
+│   ├── etcd
+│   └── master
+├── backup
+│   ├── etcd
+│   └── master
+└── restore
+    ├── etcd
+    └── master
+```
+
 Write a [`Furyfile.yml`](Furyfile.yml) in the root of your project and then simply run `furyctl`
+
+
 
 ## Contributing
 We still use `go mod` as golang package manager. Once you have that installed you can run `go mod vendor` and `go build` or `go install` should run without problems
@@ -45,6 +64,8 @@ S3 bucket
 │   └── berat.conf
 ├── configurations
 │   ├── kustomization.yaml
+│   ├── audit.yaml
+│   ├── nodeSelector.yaml
 │   └── kubeadm.yml
 └── pki
     ├── etcd

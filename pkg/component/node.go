@@ -12,23 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package component
 
-import (
-	"github.com/spf13/cobra"
-)
-
-// etcdCmd represents the etcd command
-var etcdCmd = &cobra.Command{
-	Use:   "etcd",
-	Short: "Manages etcd related commands",
-	Long:  ``,
-	Args:  cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
-	},
+// Node represent the object that reflects what nodes need (implements ClusterComponent)
+type Node struct {
 }
 
-func init() {
-	rootCmd.AddCommand(etcdCmd)
+// Backup of a node is Empty
+func (n *Node) Backup(cfg *ClusterConfig) error {
+	return nil
+}
+
+// Restore of a node is Empty
+func (n *Node) Restore(cfg *ClusterConfig) error {
+	return nil
+}
+
+// Configure basicall joins the nodes to the cluster, configures KUBELET_EXTRA_ARGS and restart kubelet and docker in case of necessity
+func (n *Node) Configure(cfg *ClusterConfig) error {
+	return nil
 }

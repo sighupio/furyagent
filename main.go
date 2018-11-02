@@ -14,7 +14,7 @@
 
 package main
 
-import "./cmd"
+import "git.incubator.sh/sighup/furyctl/cmd"
 
 func main() {
 	cmd.Execute()

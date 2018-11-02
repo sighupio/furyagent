@@ -14,25 +14,5 @@
 
 package cmd
 
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-)
-
 // FuryctlVersion is the version of the client
 const FuryctlVersion = "0.10"
-
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the client version information",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Furyctl version ", FuryctlVersion)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(versionCmd)
-}

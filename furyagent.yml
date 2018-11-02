@@ -1,0 +1,41 @@
+storage:
+  # s3-compatible:
+  #   url:
+  #   aws_access_key:
+  #   aws_secret_key:
+  # s3:
+  #   bucket_name:
+  #   region:
+  #   aws_access_key:
+  #   aws_secret_key:
+  local:
+    path: /var/backup
+    backupFolder: etcd-1
+clusterComponent:
+  nodeName: etcd-1
+  etcd:
+    certDir: /etc/etcd/pki
+    dataDir: /var/lib/etcd
+    caCertFilename: ca.crt
+    caKeyFilename: ca.key
+    clientCertFilename: client.crt
+    clientKeyFilename: client.key
+    endpoint: https://localhost:2379 # this maybe deleted (if only localhost is supported)
+    snapshotLocation: /tmp/etcd_snapshot.db
+    backupRetention: 24h
+    backupFrequency: 15m
+  master:
+    certDir: /etc/kubernetes/pki
+    caCertFilename: ca.crt
+    caKeyFilename: ca.key
+    saPubFilename: sa.pub
+    saKeyFilename: ca.key
+    proxyCaCertFilename: front-proxy-ca.crt
+    proxyKeyCertFilename: front-proxy-ca.key
+    etcdServers:
+      - https://localhost:2379
+    etcdCaCertFilename: etcd-ca.crt
+    etcdClientCertFilename: etcd-client.crt
+    etcdClientKeyFilename: etcd-client.key
+    backupRetention: 24h
+    backupFrequency: 15m

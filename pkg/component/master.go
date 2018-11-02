@@ -12,16 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package etcd
+package component
 
-type Config struct {
-	Name string
-}
+// Master implements the ClusterComponent interface
+type Master struct{}
 
-func (c *Config) Snapshot() error {
+// Backup implements
+func (m *Master) Backup(ClusterConfig) error {
 	return nil
 }
 
-func (c *Config) Restore() error {
+// Restore implements
+func (m *Master) Restore(ClusterConfig) error {
+	return nil
+}
+
+// Configure implements
+func (m *Master) Configure(ClusterConfig) error {
 	return nil
 }

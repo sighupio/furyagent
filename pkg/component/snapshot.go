@@ -12,24 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package component
 
-import (
-	"github.com/spf13/cobra"
-)
+// var endpoint string
 
-var endpoint string
+// // snapshotCmd represents the snapshot command
+// var snapshotCmd = &cobra.Command{
+// 	Use:   "snapshot",
+// 	Short: "Manages etcd node snapshots",
+// 	Long:  `Manages etcd node snapshots`,
+// 	Run: func(cmd *cobra.Command, args []string) {
+// 		cmd.Help()
+// 	},
+// }
 
-// snapshotCmd represents the snapshot command
-var snapshotCmd = &cobra.Command{
-	Use:   "snapshot",
-	Short: "Manages etcd node snapshots",
-	Long:  `Manages etcd node snapshots`,
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
-	},
-}
-
-func init() {
-	etcdCmd.AddCommand(snapshotCmd)
-}
+// func init() {
+// 	etcdCmd.AddCommand(snapshotCmd)
+// }

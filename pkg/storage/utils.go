@@ -62,3 +62,12 @@ func ZipArchive(zipname string, files ...string) error {
 	}
 	return nil
 }
+
+// FileSize is an utility to calculate dimension of file to upload
+func FileSize(path string) (int64, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return 0, err
+	}
+	return fi.Size(), nil
+}
