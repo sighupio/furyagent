@@ -1,16 +1,12 @@
 storage:
-  # s3-compatible:
-  #   url:
-  #   aws_access_key:
-  #   aws_secret_key:
-  # s3:
-  #   bucket_name:
-  #   region:
-  #   aws_access_key:
-  #   aws_secret_key:
-  local:
-    path: /var/backup
-    backupFolder: etcd-1
+  provider: s3 # accepted values are "s3" or "local"
+  url: http://localhost:9000
+  aws_access_key: minio
+  aws_secret_key: miniostorage
+  bucket_name: super-pippo
+  # region:
+  # path: /tmp/furyctl
+  # backupFolder: etcd-1
 clusterComponent:
   nodeName: etcd-1
   etcd:
@@ -28,14 +24,15 @@ clusterComponent:
     certDir: /etc/kubernetes/pki
     caCertFilename: ca.crt
     caKeyFilename: ca.key
-    saPubFilename: sa.pub
-    saKeyFilename: ca.key
-    proxyCaCertFilename: front-proxy-ca.crt
-    proxyKeyCertFilename: front-proxy-ca.key
-    etcdServers:
-      - https://localhost:2379
-    etcdCaCertFilename: etcd-ca.crt
-    etcdClientCertFilename: etcd-client.crt
-    etcdClientKeyFilename: etcd-client.key
+    # saPubFilename: sa.pub
+    # saKeyFilename: ca.key
+    # proxyCaCertFilename: front-proxy-ca.crt
+    # proxyKeyCertFilename: front-proxy-ca.key
+    # etcdServers:
+    #   - https://localhost:2379
+    # etcdCaCertFilename: etcd-ca.crt
+    # etcdClientCertFilename: etcd-client.crt
+    # etcdClientKeyFilename: etcd-client.key
     backupRetention: 24h
     backupFrequency: 15m
+

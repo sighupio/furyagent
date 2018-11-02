@@ -15,6 +15,7 @@
 package component
 
 import (
+	"git.incubator.sh/sighup/furyctl/pkg/storage"
 	"fmt"
 	"context"
 	"time"
@@ -28,17 +29,17 @@ import (
 type Etcd struct{}
 
 // Backup implements
-func (e *Etcd) Backup(c *ClusterConfig) error {
+func (e *Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 	cfg := clientv3.Config{
 		Endpoints:   []string{c.Etcd.Endpoint},
 		DialTimeout: 5 * time.Second,
 	}
 	// Setup TLS config if CAFile is provided into configurations
-	if c.Etcd.CaCertFile != "" {
+	if c.Etcd.CaCertFilename != "" {
 		tlsInfo := transport.TLSInfo{
-			CertFile:      fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.ClientCertFile),
-			KeyFile:      fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.ClientKeyFile),
-			TrustedCAFile: fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.CaCertFile),
+			CertFile:      fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.ClientCertFilename),
+			KeyFile:      fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.ClientKeyFilename),
+			TrustedCAFile: fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.CaCertFilename),
 		}
 		tlsConfig, err := tlsInfo.ClientConfig()
 		if err != nil {
@@ -57,7 +58,8 @@ func (e *Etcd) Backup(c *ClusterConfig) error {
 	err = sp.Save(context.Background(), cfg, c.Etcd.SnapshotLocation)
 	if err != nil {
 		return err
-	} 
+	}
+	err = store.UploadFile("etcd-1/pippo.db", c.Etcd.SnapshotLocation)
 	return nil
 }
 

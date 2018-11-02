@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 
 	"github.com/graymeta/stow"
 	"github.com/graymeta/stow/local"
@@ -27,16 +28,16 @@ import (
 	// "github.com/graymeta/stow/swift"
 )
 
-// Storage represent where to put whathever you're downloading
-type Storage struct {
+// Data represent where to put whathever you're downloading
+type Data struct {
 	location      stow.Location
 	containerName string
 	container     stow.Container
 }
 
 // Init tests the credentials, the write access and list access
-func Init(cfg *Config) (*Storage, error) {
-	s := new(Storage)
+func Init(cfg *Config) (*Data, error) {
+	s := new(Data)
 
 	config := stow.ConfigMap{}
 	switch cfg.Provider {
@@ -95,7 +96,7 @@ func Init(cfg *Config) (*Storage, error) {
 	return s, nil
 }
 
-func (s *Storage) getContainer() (stow.Container, error) {
+func (s *Data) getContainer() (stow.Container, error) {
 	container, err := s.location.Container(s.containerName)
 	if err == stow.ErrNotFound {
 		container, err = s.location.CreateContainer(s.containerName)
@@ -109,12 +110,12 @@ func (s *Storage) getContainer() (stow.Container, error) {
 }
 
 // Close closes the open connection to the remote or local stow.Location
-func (s *Storage) Close() error {
+func (s *Data) Close() error {
 	return s.location.Close()
 }
 
 // Download is the single interface to download something from Object Storage
-func (s *Storage) Download(filename string, obj io.WriteCloser) error {
+func (s *Data) Download(filename string, obj io.WriteCloser) error {
 	item, err := s.container.Item(filename)
 	if err == stow.ErrNotFound {
 		return fmt.Errorf("Item %s not found", filename)
@@ -141,7 +142,7 @@ func (s *Storage) Download(filename string, obj io.WriteCloser) error {
 }
 
 // Upload is the single interface to upload something to Object Storage
-func (s *Storage) Upload(filename string, size int64, obj io.ReadCloser) error {
+func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 	//upload snapshot to container with given name
 	defer obj.Close()
 	item, err := s.container.Put(filename, obj, size, nil)
@@ -150,4 +151,16 @@ func (s *Storage) Upload(filename string, size int64, obj io.ReadCloser) error {
 		return err
 	}
 	return nil
+}
+
+func (s *Data) UploadFile(filename, localPath string) error {
+	fileSize, err := FileSize(localPath)
+	if err != nil {
+		return err
+	}
+	r, err := os.Open(localPath)
+	if err != nil {
+		return err
+	}
+	return s.Upload(filename, fileSize, r)
 }

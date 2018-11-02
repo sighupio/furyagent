@@ -21,8 +21,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cfgFile string
-
 // Execute is the main entrypoint of furyctl
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
@@ -32,15 +30,10 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.furyctl.yaml)")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(printDefaultCmd)
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
 }
 
 // rootCmd represents the base command when called without any subcommands

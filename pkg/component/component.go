@@ -23,39 +23,40 @@ type ClusterComponent interface {
 
 // ClusterConfig represents the configuration for the whole cluster
 type ClusterConfig struct {
-	NodeName string
-	Etcd     EtcdConfig
-	Master   MasterConfig
-	Node     NodeConfig
+	NodeName string       `yaml:"nodeName"`
+	Etcd     EtcdConfig   `yaml:"etcd"`
+	Master   MasterConfig `yaml:"master"`
+	Node     NodeConfig   `yaml:"node"`
 }
 
 // EtcdConfig is used to backup/restore/configure etcd nodes
 type EtcdConfig struct {
-	DataDir          string
-	CertDir          string
-	CaCertFile       string
-	CaKeyFile        string
-	ClientCertFile   string
-	ClientKeyFile    string
-	Endpoint         string
-	SnapshotLocation string
+	DataDir            string `yaml:"dataDir"`
+	CertDir            string `yaml:"certDir"`
+	CaCertFilename     string `yaml:"caCertFilename"`
+	CaKeyFilename      string `yaml:"caKeyFilename"`
+	ClientCertFilename string `yaml:"clientCertFilename"`
+	ClientKeyFilename  string `yaml:"clientKeyFilename"`
+	Endpoint           string `yaml:"endpoint"`
+	SnapshotLocation   string `yaml:"snapshotLocation"`
 	BackupConfig
 }
 
 // MasterConfig is used to backup/restore/configure master nodes
 type MasterConfig struct {
-	CaCertFile string
-	CaKeyFile  string
+	CertDir    string `yaml:"certDir"`
+	CaCertFile string `yaml:"caCertFilename"`
+	CaKeyFile  string `yaml:"caKeyFilename"`
 	BackupConfig
 }
 
 // NodeConfig is used to backup/restore/configure worker nodes (backup and restore have an empty implementation right now)
 type NodeConfig struct {
-	CloudProvider string
+	CloudProvider string `yaml:"caKeyFilename"`
 }
 
 // BackupConfig are used to generalyze backuconfiguration
 type BackupConfig struct {
-	BackupFrequency string
-	BackupRetention string
+	BackupFrequency string `yaml:"backupFrequency"`
+	BackupRetention string `yaml:"backupRetention"`
 }

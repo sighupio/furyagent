@@ -36,6 +36,7 @@ var masterRestoreCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(restoreCmd)
+	restoreCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
 	restoreCmd.AddCommand(etcdRestoreCmd)
 	restoreCmd.AddCommand(masterRestoreCmd)
 }
