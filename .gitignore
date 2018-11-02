@@ -1,6 +1,6 @@
 external_fury
 vendor
-bin/furyctl_*
+bin
 *.db
 *.zip
 certs
