@@ -20,14 +20,13 @@ var backupCmd = &cobra.Command{
 		// Executed only when another argument is passed, e.g. "backup etcd"
 		// "backup" will print usage as desired
 		// Reads the configuration file
-		ac, err := InitAgent(cfgFile)
-		agentConfig = ac
+		var err error
+		agentConfig, err = InitAgent(cfgFile)
 		if err != nil {
 			log.Fatal(err)
 		}
 		// Initializes the storage
-		s, err := storage.Init(&agentConfig.Storage)
-		store = s
+		store, err = storage.Init(&agentConfig.Storage)
 		if err != nil {
 			log.Fatal(err)
 		}
