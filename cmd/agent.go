@@ -18,11 +18,11 @@ type AgentConfig struct {
 
 // InitAgent reads the configuration file
 func InitAgent(configFile string) (*AgentConfig, error) {
-	
+
 	viper.SetConfigFile(configFile)
 
 	// If a config file is found, read it in.
-	err := viper.ReadInConfig(); 
+	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, fmt.Errorf("Error reading config using config file: %v", viper.ConfigFileUsed())
 	}

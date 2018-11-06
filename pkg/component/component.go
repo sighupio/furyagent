@@ -14,10 +14,14 @@
 
 package component
 
+import (
+	"git.incubator.sh/sighup/furyctl/pkg/storage"
+)
+
 // ClusterComponent interface represent the basic concept of the componet: etcd, master, node
 type ClusterComponent interface {
-	Backup(ClusterConfig) error
-	Restore(ClusterConfig) error
+	Backup(*ClusterConfig, *storage.Data) error
+	Restore(ClusterConfig, storage.Data) error
 	Configure(ClusterConfig) error
 }
 

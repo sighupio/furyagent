@@ -1,22 +1,36 @@
 package cmd
 
 import (
-	"log"
-
 	"git.incubator.sh/sighup/furyctl/pkg/component"
 	"git.incubator.sh/sighup/furyctl/pkg/storage"
 	"github.com/spf13/cobra"
+	"log"
 )
 
 var cfgFile string
+var store *storage.Data
+var agentConfig *AgentConfig
 
 // backupCmd represents the `furyctl backup` command
 var backupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Executes backups",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Executed only when another argument is passed, e.g. "backup etcd"
+		// "backup" will print usage as desired
+		// Reads the configuration file
+		ac, err := InitAgent(cfgFile)
+		agentConfig = ac
+		if err != nil {
+			log.Fatal(err)
+		}
+		// Initializes the storage
+		s, err := storage.Init(&agentConfig.Storage)
+		store = s
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -26,19 +40,9 @@ var etcdBackupCmd = &cobra.Command{
 	Short: "Backups etcd node",
 	Long:  `Backups etcd node`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Reads the configuration file
-		cfg, err := InitAgent(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		// Initializes the storage
-		store, err := storage.Init(&cfg.Storage)
-		if err != nil {
-			log.Fatal(err)
-		}
 		// Does what is suppose to do
-		etcd := component.Etcd{}
-		err = etcd.Backup(&cfg.ClusterComponent, store)
+		var etcd component.ClusterComponent = component.Etcd{}
+		err := etcd.Backup(&agentConfig.ClusterComponent, store)
 		if err != nil {
 			log.Fatal(err)
 		}

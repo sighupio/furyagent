@@ -15,21 +15,21 @@
 package component
 
 import (
-	"git.incubator.sh/sighup/furyctl/pkg/storage"
-	"fmt"
 	"context"
-	"time"
+	"fmt"
+	"git.incubator.sh/sighup/furyctl/pkg/storage"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.etcd.io/etcd/pkg/transport"
 	"go.uber.org/zap"
+	"time"
 )
 
 // Etcd implements the ClusterComponent Interface
 type Etcd struct{}
 
 // Backup implements
-func (e *Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
+func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 	cfg := clientv3.Config{
 		Endpoints:   []string{c.Etcd.Endpoint},
 		DialTimeout: 5 * time.Second,
@@ -37,9 +37,9 @@ func (e *Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 	// Setup TLS config if CAFile is provided into configurations
 	if c.Etcd.CaCertFilename != "" {
 		tlsInfo := transport.TLSInfo{
-			CertFile:      fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.ClientCertFilename),
-			KeyFile:      fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.ClientKeyFilename),
-			TrustedCAFile: fmt.Sprintf("%s/%s",c.Etcd.CertDir,c.Etcd.CaCertFilename),
+			CertFile:      fmt.Sprintf("%s/%s", c.Etcd.CertDir, c.Etcd.ClientCertFilename),
+			KeyFile:       fmt.Sprintf("%s/%s", c.Etcd.CertDir, c.Etcd.ClientKeyFilename),
+			TrustedCAFile: fmt.Sprintf("%s/%s", c.Etcd.CertDir, c.Etcd.CaCertFilename),
 		}
 		tlsConfig, err := tlsInfo.ClientConfig()
 		if err != nil {
@@ -53,7 +53,7 @@ func (e *Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 		return err
 	}
 	defer cli.Close()
-	
+
 	sp := snapshot.NewV3(zap.NewExample())
 	err = sp.Save(context.Background(), cfg, c.Etcd.SnapshotLocation)
 	if err != nil {
@@ -64,11 +64,11 @@ func (e *Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 }
 
 // Restore implements
-func (e *Etcd) Restore(c *ClusterConfig) error {
+func (e Etcd) Restore(c ClusterConfig, store storage.Data) error {
 	restoreConf := snapshot.RestoreConfig{
-		SnapshotPath:        c.Etcd.SnapshotLocation,
-		Name:                c.NodeName,
-		OutputDataDir:       c.Etcd.DataDir,
+		SnapshotPath:  c.Etcd.SnapshotLocation,
+		Name:          c.NodeName,
+		OutputDataDir: c.Etcd.DataDir,
 		// PeerURLs:            initialAdvertisePeerUrls,
 	}
 	sp := snapshot.NewV3(zap.NewExample())
@@ -79,6 +79,6 @@ func (e *Etcd) Restore(c *ClusterConfig) error {
 }
 
 // Configure implements
-func (e *Etcd) Configure(c *ClusterConfig) error {
+func (e Etcd) Configure(c ClusterConfig) error {
 	return nil
 }
