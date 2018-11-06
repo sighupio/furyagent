@@ -28,7 +28,7 @@ import (
 	// "github.com/graymeta/stow/swift"
 )
 
-// Data represent where to put whathever you're downloading
+// Data represent where to put whatever you're downloading
 type Data struct {
 	location      stow.Location
 	containerName string

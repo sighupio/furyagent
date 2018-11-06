@@ -21,7 +21,7 @@ import (
 // ClusterComponent interface represent the basic concept of the componet: etcd, master, node
 type ClusterComponent interface {
 	Backup(*ClusterConfig, *storage.Data) error
-	Restore(ClusterConfig, storage.Data) error
+	Restore(*ClusterConfig, *storage.Data) error
 	Configure(ClusterConfig) error
 }
 
@@ -40,6 +40,7 @@ type EtcdConfig struct {
 	CaCertFilename     string `yaml:"caCertFilename"`
 	CaKeyFilename      string `yaml:"caKeyFilename"`
 	ClientCertFilename string `yaml:"clientCertFilename"`
+	SnapshotFilename   string `yaml:"snapshotFilename"`
 	ClientKeyFilename  string `yaml:"clientKeyFilename"`
 	Endpoint           string `yaml:"endpoint"`
 	SnapshotLocation   string `yaml:"snapshotLocation"`

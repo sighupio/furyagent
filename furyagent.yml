@@ -8,7 +8,7 @@ storage:
   # path: /tmp/furyctl
   # backupFolder: etcd-1
 clusterComponent:
-  nodeName: etcd-1
+  nodeName: s1 
   etcd:
     # certDir: /etc/etcd/pki
     # dataDir: /var/lib/etcd
@@ -17,6 +17,7 @@ clusterComponent:
     # clientCertFilename: client.crt
     # clientKeyFilename: client.key
     endpoint: http://localhost:2379 # this maybe deleted (if only localhost is supported)
+    snapshotFilename: etcd-backup.db
     snapshotLocation: /tmp/etcd_snapshot.db
     backupRetention: 24h
     backupFrequency: 15m

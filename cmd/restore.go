@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"git.incubator.sh/sighup/furyctl/pkg/component"
 	"github.com/spf13/cobra"
+	"log"
 )
 
 // restoreCmd represents the `furyctl restore` subcommand
@@ -9,8 +11,8 @@ var restoreCmd = &cobra.Command{
 	Use:   "restore",
 	Short: "Executes restores",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		agentConfig, store = getConfig(cfgFile)
 	},
 }
 
@@ -20,7 +22,11 @@ var etcdRestoreCmd = &cobra.Command{
 	Short: "Restores etcd node",
 	Long:  `Restores etcd node`,
 	Run: func(cmd *cobra.Command, args []string) {
-
+		var etcd component.ClusterComponent = component.Etcd{}
+		err := etcd.Restore(&agentConfig.ClusterComponent, store)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

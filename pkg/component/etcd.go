@@ -22,14 +22,14 @@ import (
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.etcd.io/etcd/pkg/transport"
 	"go.uber.org/zap"
+	"os"
 	"time"
 )
 
 // Etcd implements the ClusterComponent Interface
 type Etcd struct{}
 
-// Backup implements
-func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
+func getEtcdCfg(c *ClusterConfig, store *storage.Data) (*clientv3.Config, error) {
 	cfg := clientv3.Config{
 		Endpoints:   []string{c.Etcd.Endpoint},
 		DialTimeout: 5 * time.Second,
@@ -43,39 +43,43 @@ func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 		}
 		tlsConfig, err := tlsInfo.ClientConfig()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		cfg.TLS = tlsConfig
 	}
 	// Creating etcd client
-	cli, err := clientv3.New(cfg)
-	if err != nil {
-		return err
-	}
-	defer cli.Close()
+	return &cfg, nil
+}
 
-	sp := snapshot.NewV3(zap.NewExample())
-	err = sp.Save(context.Background(), cfg, c.Etcd.SnapshotLocation)
+// Backup implements
+func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
+	cfg, err := getEtcdCfg(c, store)
 	if err != nil {
 		return err
 	}
-	err = store.UploadFile("etcd-1/pippo.db", c.Etcd.SnapshotLocation)
-	return nil
+	sp := snapshot.NewV3(zap.NewExample())
+	err = sp.Save(context.Background(), *cfg, c.Etcd.SnapshotLocation)
+	if err != nil {
+		return err
+	}
+	return store.UploadFile(fmt.Sprintf("%s/%s", c.NodeName, c.Etcd.SnapshotFilename), c.Etcd.SnapshotLocation)
 }
 
 // Restore implements
-func (e Etcd) Restore(c ClusterConfig, store storage.Data) error {
+func (e Etcd) Restore(c *ClusterConfig, store *storage.Data) error {
+	f, err := os.Create(c.Etcd.SnapshotLocation)
+	if err != nil {
+		return err
+	}
+	err = store.Download(c.Etcd.SnapshotLocation, f)
 	restoreConf := snapshot.RestoreConfig{
 		SnapshotPath:  c.Etcd.SnapshotLocation,
 		Name:          c.NodeName,
 		OutputDataDir: c.Etcd.DataDir,
-		// PeerURLs:            initialAdvertisePeerUrls,
+		PeerURLs:      []string{c.Etcd.Endpoint},
 	}
 	sp := snapshot.NewV3(zap.NewExample())
-	if err := sp.Restore(restoreConf); err != nil {
-		return err
-	}
-	return nil
+	return sp.Restore(restoreConf)
 }
 
 // Configure implements

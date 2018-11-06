@@ -11,25 +11,30 @@ var cfgFile string
 var store *storage.Data
 var agentConfig *AgentConfig
 
+func getConfig(cfgFile string) (*AgentConfig, *storage.Data) {
+	// Executed only when another argument is passed, e.g. "backup etcd"
+	// "backup" will print usage as desired
+	// Reads the configuration file
+	agentConfig, err := InitAgent(cfgFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Initializes the storage
+	store, err := storage.Init(&agentConfig.Storage)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return agentConfig, store
+
+}
+
 // backupCmd represents the `furyctl backup` command
 var backupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Executes backups",
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		// Executed only when another argument is passed, e.g. "backup etcd"
-		// "backup" will print usage as desired
-		// Reads the configuration file
-		var err error
-		agentConfig, err = InitAgent(cfgFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		// Initializes the storage
-		store, err = storage.Init(&agentConfig.Storage)
-		if err != nil {
-			log.Fatal(err)
-		}
+		agentConfig, store = getConfig(cfgFile)
 	},
 }
 

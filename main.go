@@ -14,8 +14,12 @@
 
 package main
 
-import "git.incubator.sh/sighup/furyctl/cmd"
+import (
+	"git.incubator.sh/sighup/furyctl/cmd"
+	"log"
+)
 
 func main() {
+	log.SetFlags(log.Lshortfile)
 	cmd.Execute()
 }
