@@ -18,7 +18,7 @@ clusterComponent:
     # clientKeyFilename: client.key
     endpoint: http://localhost:2379 # this maybe deleted (if only localhost is supported)
     snapshotFilename: etcd-backup.db
-    snapshotLocation: /tmp/etcd_snapshot.db
+    snapshotLocation: /home/phisco/work/fury/furyctl
     backupRetention: 24h
     backupFrequency: 15m
   master:

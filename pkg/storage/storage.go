@@ -147,6 +147,9 @@ func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 	//upload snapshot to container with given name
 	defer obj.Close()
 	item, err := s.container.Put(filename, obj, size, nil)
+	if err != nil {
+		return err
+	}
 	log.Println("Item URL: ", item.URL())
 	if err != nil {
 		return err

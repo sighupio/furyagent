@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"git.incubator.sh/sighup/furyctl/pkg/component"
 	"git.incubator.sh/sighup/furyctl/pkg/storage"
@@ -32,6 +31,5 @@ func InitAgent(configFile string) (*AgentConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode into struct, %v", err)
 	}
-	log.Println(conf)
 	return conf, nil
 }

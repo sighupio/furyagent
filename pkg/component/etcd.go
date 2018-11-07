@@ -23,6 +23,7 @@ import (
 	"go.etcd.io/etcd/pkg/transport"
 	"go.uber.org/zap"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -54,29 +55,36 @@ func getEtcdCfg(c *ClusterConfig, store *storage.Data) (*clientv3.Config, error)
 // Backup implements
 func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 	cfg, err := getEtcdCfg(c, store)
+	filePath := filepath.Join(c.Etcd.SnapshotLocation, c.Etcd.SnapshotFilename)
 	if err != nil {
 		return err
 	}
 	sp := snapshot.NewV3(zap.NewExample())
-	err = sp.Save(context.Background(), *cfg, c.Etcd.SnapshotLocation)
+	err = sp.Save(context.Background(), *cfg, filePath)
 	if err != nil {
 		return err
 	}
-	return store.UploadFile(fmt.Sprintf("%s/%s", c.NodeName, c.Etcd.SnapshotFilename), c.Etcd.SnapshotLocation)
+	return store.UploadFile(fmt.Sprintf("%s/%s", c.NodeName, c.Etcd.SnapshotFilename), filePath)
 }
 
 // Restore implements
 func (e Etcd) Restore(c *ClusterConfig, store *storage.Data) error {
-	f, err := os.Create(c.Etcd.SnapshotLocation)
+	filePath := filepath.Join(c.Etcd.SnapshotLocation, c.Etcd.SnapshotFilename)
+	f, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
-	err = store.Download(c.Etcd.SnapshotLocation, f)
+	err = store.Download(fmt.Sprintf("%s/%s", c.NodeName, c.Etcd.SnapshotFilename), f)
+	if err != nil {
+		return err
+	}
 	restoreConf := snapshot.RestoreConfig{
-		SnapshotPath:  c.Etcd.SnapshotLocation,
-		Name:          c.NodeName,
-		OutputDataDir: c.Etcd.DataDir,
-		PeerURLs:      []string{c.Etcd.Endpoint},
+		SnapshotPath: filePath,
+		Name:         c.NodeName,
+		// probably we'll have to modify this part to handle ha etcd
+		InitialCluster: fmt.Sprintf("%s=%s", c.NodeName, c.Etcd.Endpoint),
+		OutputDataDir:  filepath.Join(os.TempDir(), fmt.Sprint(time.Now().Nanosecond())),
+		PeerURLs:       []string{c.Etcd.Endpoint},
 	}
 	sp := snapshot.NewV3(zap.NewExample())
 	return sp.Restore(restoreConf)
