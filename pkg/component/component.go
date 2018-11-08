@@ -35,15 +35,16 @@ type ClusterConfig struct {
 
 // EtcdConfig is used to backup/restore/configure etcd nodes
 type EtcdConfig struct {
-	DataDir            string `yaml:"dataDir"`
-	CertDir            string `yaml:"certDir"`
-	CaCertFilename     string `yaml:"caCertFilename"`
-	CaKeyFilename      string `yaml:"caKeyFilename"`
-	ClientCertFilename string `yaml:"clientCertFilename"`
-	SnapshotFilename   string `yaml:"snapshotFilename"`
-	ClientKeyFilename  string `yaml:"clientKeyFilename"`
-	Endpoint           string `yaml:"endpoint"`
-	SnapshotLocation   string `yaml:"snapshotLocation"`
+	DataDir             string `yaml:"dataDir"`
+	CertDir             string `yaml:"certDir"`
+	CaCertFilename      string `yaml:"caCertFilename"`
+	CaKeyFilename       string `yaml:"caKeyFilename"`
+	ClientCertFilename  string `yaml:"clientCertFilename"`
+	InitialClusterToken string `yaml:"initialClusterToken"`
+	SnapshotFilename    string `yaml:"snapshotFilename"`
+	ClientKeyFilename   string `yaml:"clientKeyFilename"`
+	Endpoint            string `yaml:"endpoint"`
+	SnapshotLocation    string `yaml:"snapshotLocation"`
 	BackupConfig
 }
 

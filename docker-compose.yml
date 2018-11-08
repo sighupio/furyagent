@@ -3,7 +3,7 @@ version: '2'
 services:
   etcd:
     image: gcr.io/etcd-development/etcd:v3.3.10
-    entrypoint:
+    command:
       - /usr/local/bin/etcd
       - "--name"
       - "s1"
@@ -23,8 +23,6 @@ services:
       - "tkn"
       - "--initial-cluster-state"
       - "new"
-    volumes:
-    - etcd_data:/etcd-data
     ports: 
     - 2379:2379
     - 2380:2380
@@ -41,4 +39,3 @@ services:
     
 volumes:
   minio_data:
-  etcd_data:

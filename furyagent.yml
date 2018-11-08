@@ -1,6 +1,6 @@
 storage:
   provider: s3 # accepted values are "s3" or "local"
-  url: "http://localhost:9000"
+  url: "http://minio:9000"
   AccessKey: "minio"
   SecretKey: "miniostorage"
   bucketName: "super-pippo"
@@ -10,15 +10,16 @@ storage:
 clusterComponent:
   nodeName: s1 
   etcd:
-    # certDir: /etc/etcd/pki
-    # dataDir: /var/lib/etcd
-    # caCertFilename: ca.crt
-    # caKeyFilename: ca.key
-    # clientCertFilename: client.crt
-    # clientKeyFilename: client.key
+    certDir: /etc/etcd/pki
+    dataDir: /etcd-data
+    caCertFilename: ca.crt
+    caKeyFilename: ca.key
+    #clientCertFilename: client.crt
+    #clientKeyFilename: client.key
+    initialClusterToken: tkn
     endpoint: http://localhost:2379 # this maybe deleted (if only localhost is supported)
     snapshotFilename: etcd-backup.db
-    snapshotLocation: /home/phisco/work/fury/furyctl
+    snapshotLocation: /tmp
     backupRetention: 24h
     backupFrequency: 15m
   master:
