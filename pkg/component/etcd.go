@@ -17,7 +17,7 @@ package component
 import (
 	"context"
 	"fmt"
-	"git.incubator.sh/sighup/furyctl/pkg/storage"
+	"git.incubator.sh/sighup/furyagent/pkg/storage"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.etcd.io/etcd/pkg/transport"

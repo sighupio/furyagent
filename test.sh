@@ -13,7 +13,7 @@ cat /etc/etcd/pki/ca.key
 cat /etcd-data/member/prova
 etcdctl get foo
 
-furyctl backup etcd
+furyagent backup etcd
 
 echo "written before restoring: "
 echo 2 > /etc/etcd/pki/ca.crt
@@ -28,7 +28,7 @@ cat /etcd-data/member/prova
 killall -KILL etcd
 sleep 10
 
-furyctl restore etcd
+furyagent restore etcd
 
 echo "read after restoring: "
 cat /etc/etcd/pki/ca.crt

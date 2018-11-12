@@ -38,7 +38,7 @@ func init() {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "furyctl",
+	Use:   "furyagent",
 	Short: "A command line tool to manage cluster deployment with kubernetes",
 	Long:  ``,
 }
@@ -49,7 +49,7 @@ var versionCmd = &cobra.Command{
 	Short: "Prints the client version information",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Furyctl version ", FuryctlVersion)
+		fmt.Println("Furyagent version ", FuryctlVersion)
 	},
 }
 
@@ -59,19 +59,6 @@ var printDefaultCmd = &cobra.Command{
 	Short: "Prints a basic Furyfile used to generate an INFRA project",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(InitFuryfile)
+		//fmt.Println(InitFuryfile)
 	},
 }
-
-// InitFuryfile default initial Furyfile config
-const InitFuryfile = `
-roles:
-  - name: kube-node-common
-    version: master
-
-bases:
-  - name: monitoring/prometheus-operated
-    version: master
-  - name: monitoring/prometheus-operator
-    version: master
-`

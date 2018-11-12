@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"git.incubator.sh/sighup/furyctl/pkg/component"
-	"git.incubator.sh/sighup/furyctl/pkg/storage"
+	"git.incubator.sh/sighup/furyagent/pkg/component"
+	"git.incubator.sh/sighup/furyagent/pkg/storage"
 
 	"github.com/spf13/viper"
 )

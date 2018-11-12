@@ -1,7 +1,7 @@
 # Furyctl
 
 ## Install
-Get the right binary for you in the [latest release](https://git.incubator.sh/sighup/furyctl/tags)
+Get the right binary for you in the [latest release](https://git.incubator.sh/sighup/furyagent/tags)
 
 ## Usage
 

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"git.incubator.sh/sighup/furyctl/pkg/component"
+	"git.incubator.sh/sighup/furyagent/pkg/component"
 	"github.com/spf13/cobra"
 	"log"
 )

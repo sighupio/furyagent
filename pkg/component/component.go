@@ -15,7 +15,7 @@
 package component
 
 import (
-	"git.incubator.sh/sighup/furyctl/pkg/storage"
+	"git.incubator.sh/sighup/furyagent/pkg/storage"
 )
 
 // ClusterComponent interface represent the basic concept of the componet: etcd, master, node
