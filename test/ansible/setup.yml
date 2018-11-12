@@ -7,6 +7,7 @@
   tasks:
     - name: install python
       raw: "sudo apt-get update -y && sudo apt-get install python -y"
+
     - name: copy furyagent.yml
       copy:
         src: furyagent.yml
@@ -19,14 +20,47 @@
         dest: /usr/local/bin
         mode: 755
 
-    - name: copy test.sh
-      copy:
-        src: test.sh 
-        dest: /root
-        mode: 755
-
 - name: Install etcd
   hosts: etcd
   become: true
   roles:
   - etcd
+
+- name: Run tests
+  hosts: all
+  become: true
+  tasks:
+    - name: Etcd test 
+      shell: |
+        echo "---------------- written before backup: ---------------" 
+        etcdctl put foo v1
+        etcdctl get foo
+        echo "---------------- backup: ------------------------------" 
+        furyagent backup etcd
+        echo "---------------- written before restoring: ------------"
+        etcdctl put foo v2
+        etcdctl get foo
+        echo "---------------- read before restoring: ---------------"
+        etcdctl get foo
+        echo "---------------- stopping etcd: -----------------------"
+        systemctl stop etcd
+        echo "---------------- restoring: ---------------------------" 
+        furyagent restore etcd
+        echo "---------------- restarting etcd: ---------------------" 
+        systemctl start etcd
+        echo "---------------- read after restoring: ----------------"
+        etcdctl get foo
+      environment:
+        ETCDCTL_API: 3 
+        ETCDCTL_DIAL_TIMEOUT: 3s
+        ETCDCTL_CACERT: /etc/etcd/pki/ca.pem
+        ETCDCTL_CERT: /etc/etcd/pki/etcdctl-client.pem
+        ETCDCTL_KEY: /etc/etcd/pki/etcdctl-client-key.pem
+      register: etcd_test_result
+      failed_when: "'v1' not in etcd_test_result.stdout"
+
+    - name: have previous test passed?
+      debug:
+        var: etcd_test_result
+      when: "'v1' not in etcd_test_result.stdout"
+

@@ -3,21 +3,18 @@ storage:
   url: "http://minio:9000"
   AccessKey: "minio"
   SecretKey: "miniostorage"
-  bucketName: "super-pippo"
-  # region:
-  # path: /tmp/furyctl
-  # backupFolder: etcd-1
+  bucketName: "furyagent-test"
+  region: "eu-west-1"
 clusterComponent:
-  nodeName: s1 
+  nodeName: etcd
   etcd:
     certDir: /etc/etcd/pki
-    dataDir: /etcd-data
-    caCertFilename: ca.crt
-    caKeyFilename: ca.key
-    #clientCertFilename: client.crt
-    #clientKeyFilename: client.key
-    initialClusterToken: tkn
-    endpoint: http://localhost:2379 # this maybe deleted (if only localhost is supported)
+    dataDir: /var/lib/etcd
+    caCertFilename: ca.pem
+    caKeyFilename: ca.pem
+    clientCertFilename: etcdctl-client.pem
+    clientKeyFilename: etcdctl-client-key.pem
+    endpoint: https://localhost:2379 # this maybe deleted (if only localhost is supported)
     snapshotFilename: etcd-backup.db
     snapshotLocation: /tmp
     backupRetention: 24h

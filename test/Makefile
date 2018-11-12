@@ -9,11 +9,11 @@ destroy:
 	cd terraform && terraform destroy
 
 run-ansible:
+	cd .. && go build && mv -f furyagent test/ansible/files/
 	cd ansible && ansible-playbook setup.yml
 
 
 test:
-	cd .. && go build && cp furyagent test.sh furyagent.yml test/ansible/files/
 	$(MAKE) apply
 	$(MAKE) run-ansible
 
