@@ -4,3 +4,8 @@ bin
 *.db
 *.zip
 certs
+.envrc
+.terraform
+*.tfstate
+*.tfstate.backup
+*.retry

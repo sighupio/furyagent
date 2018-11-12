@@ -1,0 +1,32 @@
+---
+- name: setup files and packages
+  gather_facts: no
+  hosts: all
+  tags:
+    - prepare
+  tasks:
+    - name: install python
+      raw: "sudo apt-get update -y && sudo apt-get install python -y"
+    - name: copy furyagent.yml
+      copy:
+        src: furyagent.yml
+        dest: /root
+        mode: 755
+
+    - name: copy furyagent
+      copy:
+        src: furyagent
+        dest: /usr/local/bin
+        mode: 755
+
+    - name: copy test.sh
+      copy:
+        src: test.sh 
+        dest: /root
+        mode: 755
+
+- name: Install etcd
+  hosts: etcd
+  become: true
+  roles:
+  - etcd
