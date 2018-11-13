@@ -108,23 +108,6 @@ func (e Etcd) Restore(c *ClusterConfig, store *storage.Data) error {
 	if err != nil {
 		return err
 	}
-
-	// remove, create and download new certs
-	for _, filename := range []string{c.Etcd.CaCertFilename, c.Etcd.CaKeyFilename} {
-		file := filepath.Join(c.Etcd.CertDir, filename)
-		os.Remove(file)
-		newFile, err := os.Create(file)
-		if err != nil {
-			return err
-		}
-		bucketPath := filepath.Join("pki", c.NodeName, filename)
-		err = store.Download(bucketPath, newFile)
-		if err != nil {
-			log.Println("no %s found in bucket", bucketPath)
-			return err
-		}
-	}
-
 	restoreConf := snapshot.RestoreConfig{
 		SnapshotPath: filePath,
 		Name:         c.NodeName,
@@ -140,7 +123,9 @@ func (e Etcd) Restore(c *ClusterConfig, store *storage.Data) error {
 	return sp.Restore(restoreConf)
 }
 
-// Configure implements
-func (e Etcd) Configure(c ClusterConfig) error {
-	return nil
+func (e Etcd) Configure(c *ClusterConfig, store *storage.Data) error {
+	// remove, create and download new certs
+	files := []string{c.Etcd.CaCertFilename, c.Etcd.CaKeyFilename}
+	bucketDir := filepath.Join("pki", c.NodeName)
+	return downloadFilesToDirectory(files, c.Etcd.CertDir, bucketDir, store)
 }

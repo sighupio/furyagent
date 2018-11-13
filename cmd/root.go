@@ -18,8 +18,13 @@ import (
 	"fmt"
 	"os"
 
+	"git.incubator.sh/sighup/furyagent/pkg/storage"
 	"github.com/spf13/cobra"
 )
+
+var cfgFile string
+var store *storage.Data
+var agentConfig *AgentConfig
 
 // Execute is the main entrypoint of furyctl
 func Execute() {
@@ -41,6 +46,9 @@ var rootCmd = &cobra.Command{
 	Use:   "furyagent",
 	Short: "A command line tool to manage cluster deployment with kubernetes",
 	Long:  ``,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		agentConfig, store = getConfig(cfgFile)
+	},
 }
 
 // versionCmd represents the version command

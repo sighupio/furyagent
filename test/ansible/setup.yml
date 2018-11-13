@@ -1,13 +1,15 @@
 ---
+
 - name: setup files and packages
   gather_facts: no
   hosts: all
   tags:
     - prepare
   tasks:
+    - name: Wait 600 seconds for target connection to become reachable/usable
+      wait_for_connection:
     - name: install python
       raw: "sudo apt-get update -y && sudo apt-get install python -y"
-
     - name: copy furyagent.yml
       copy:
         src: furyagent.yml
@@ -46,6 +48,7 @@
         systemctl stop etcd
         echo "---------------- restoring: ---------------------------" 
         furyagent restore etcd
+        furyagent configure etcd
         echo "---------------- restarting etcd: ---------------------" 
         systemctl start etcd
         echo "---------------- read after restoring: ----------------"
@@ -56,7 +59,18 @@
         ETCDCTL_CACERT: /etc/etcd/pki/ca.pem
         ETCDCTL_CERT: /etc/etcd/pki/etcdctl-client.pem
         ETCDCTL_KEY: /etc/etcd/pki/etcdctl-client-key.pem
+
+    - name: Etcd check
       register: etcd_test_result
+      shell: |
+        echo "---------------- read after restoring: ----------------"
+        etcdctl get foo
+      environment:
+        ETCDCTL_API: 3 
+        ETCDCTL_DIAL_TIMEOUT: 3s
+        ETCDCTL_CACERT: /etc/etcd/pki/ca.pem
+        ETCDCTL_CERT: /etc/etcd/pki/etcdctl-client.pem
+        ETCDCTL_KEY: /etc/etcd/pki/etcdctl-client-key.pem
       failed_when: "'v1' not in etcd_test_result.stdout"
 
     - name: have previous test passed?

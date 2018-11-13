@@ -7,10 +7,6 @@ import (
 	"log"
 )
 
-var cfgFile string
-var store *storage.Data
-var agentConfig *AgentConfig
-
 func getConfig(cfgFile string) (*AgentConfig, *storage.Data) {
 	// Executed only when another argument is passed, e.g. "backup etcd"
 	// "backup" will print usage as desired

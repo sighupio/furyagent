@@ -23,15 +23,15 @@ clusterComponent:
     certDir: /etc/kubernetes/pki
     caCertFilename: ca.crt
     caKeyFilename: ca.key
-    # saPubFilename: sa.pub
-    # saKeyFilename: ca.key
-    # proxyCaCertFilename: front-proxy-ca.crt
-    # proxyKeyCertFilename: front-proxy-ca.key
-    # etcdServers:
-    #   - https://localhost:2379
-    # etcdCaCertFilename: etcd-ca.crt
-    # etcdClientCertFilename: etcd-client.crt
-    # etcdClientKeyFilename: etcd-client.key
+    saPubFilename: sa.pub
+    saKeyFilename: ca.key
+    proxyCaCertFilename: front-proxy-ca.crt
+    proxyKeyCertFilename: front-proxy-ca.key
+    #etcdServers:
+      #- https://localhost:2379
+    #etcdCaCertFilename: etcd-ca.crt
+    etcdClientCertFilename: etcd-client.crt
+    etcdClientKeyFilename: etcd-client.key
     backupRetention: 24h
     backupFrequency: 15m
 

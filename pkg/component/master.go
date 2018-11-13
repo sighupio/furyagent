@@ -14,20 +14,31 @@
 
 package component
 
+import (
+	"git.incubator.sh/sighup/furyagent/pkg/storage"
+	"path/filepath"
+)
+
 // Master implements the ClusterComponent interface
 type Master struct{}
 
 // Backup implements
-func (m *Master) Backup(ClusterConfig) error {
+func (m Master) Backup(c *ClusterConfig, store *storage.Data) error {
 	return nil
 }
 
 // Restore implements
-func (m *Master) Restore(ClusterConfig) error {
+func (m Master) Restore(c *ClusterConfig, store *storage.Data) error {
 	return nil
 }
 
 // Configure implements
-func (m *Master) Configure(ClusterConfig) error {
-	return nil
+func (m Master) Configure(c *ClusterConfig, store *storage.Data) error {
+	// remove, create and download new certs
+	files := []string{c.Master.CaCertFile, c.Master.CaKeyFile,
+		c.Master.SaKeyFile, c.Master.SaPubFile,
+		c.Master.ProxyCaCertFile, c.Master.ProxyKeyCertFile,
+	}
+	bucketDir := filepath.Join("pki", "master")
+	return downloadFilesToDirectory(files, c.Master.CertDir, bucketDir, store)
 }
