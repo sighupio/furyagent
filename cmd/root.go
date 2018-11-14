@@ -15,7 +15,9 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"git.incubator.sh/sighup/furyagent/pkg/storage"
@@ -34,10 +36,26 @@ func Execute() {
 	}
 }
 
+func getConfig(cfgFile string) (*AgentConfig, *storage.Data) {
+	// Reads the configuration file
+	agentConfig, err := InitAgent(cfgFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Initializes the storage
+	store, err := storage.Init(&agentConfig.Storage)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return agentConfig, store
+}
+
 func init() {
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.furyctl.yaml)")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(printParsedConfig)
 	rootCmd.AddCommand(printDefaultCmd)
 }
 
@@ -68,5 +86,18 @@ var printDefaultCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		//fmt.Println(InitFuryfile)
+	},
+}
+
+var printParsedConfig = &cobra.Command{
+	Use:   "parsed-config",
+	Short: "Prints the parsed furyagent.yaml file",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		conf, err := json.MarshalIndent(agentConfig, "", " ")
+		if err != nil {
+			log.Print(err)
+		}
+		fmt.Print(string(conf))
 	},
 }

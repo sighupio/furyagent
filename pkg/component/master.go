@@ -46,8 +46,8 @@ func (m Master) getFileMappings(c *ClusterConfig) [][]string {
 		[]string{c.Master.CaKeyFile, MasterCaKey},
 		[]string{c.Master.SaKeyFile, MasterSaKey},
 		[]string{c.Master.SaPubFile, MasterSaPub},
-		[]string{c.Master.ProxyCaCertFile, MasterFProxyKey},
-		[]string{c.Master.ProxyKeyCertFile, MasterFProxyCrt},
+		[]string{c.Master.ProxyCaCertFile, MasterFProxyCrt},
+		[]string{c.Master.ProxyKeyCertFile, MasterFProxyKey},
 	}
 }
 

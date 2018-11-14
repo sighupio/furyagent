@@ -45,7 +45,6 @@ var masterInitCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	initCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
 	initCmd.PersistentFlags().StringVarP(&initDir, "directory", "d", ".", "directory with files to be uploaded (default is .)")
 	initCmd.AddCommand(etcdInitCmd)
 	initCmd.AddCommand(masterInitCmd)

@@ -28,46 +28,46 @@ type ClusterComponent interface {
 
 // ClusterConfig represents the configuration for the whole cluster
 type ClusterConfig struct {
-	NodeName string       `yaml:"nodeName"`
-	Etcd     EtcdConfig   `yaml:"etcd"`
-	Master   MasterConfig `yaml:"master"`
-	Node     NodeConfig   `yaml:"node"`
+	NodeName string       `mapstructure:"nodeName"`
+	Etcd     EtcdConfig   `mapstructure:"etcd"`
+	Master   MasterConfig `mapstructure:"master"`
+	Node     NodeConfig   `mapstructure:"node"`
 }
 
 // EtcdConfig is used to backup/restore/configure etcd nodes
 type EtcdConfig struct {
-	DataDir             string `yaml:"dataDir"`
-	CertDir             string `yaml:"certDir"`
-	CaCertFilename      string `yaml:"caCertFilename"`
-	CaKeyFilename       string `yaml:"caKeyFilename"`
-	ClientCertFilename  string `yaml:"clientCertFilename"`
-	InitialClusterToken string `yaml:"initialClusterToken"`
-	SnapshotFilename    string `yaml:"snapshotFilename"`
-	ClientKeyFilename   string `yaml:"clientKeyFilename"`
-	Endpoint            string `yaml:"endpoint"`
-	SnapshotLocation    string `yaml:"snapshotLocation"`
+	DataDir             string `mapstructure:"dataDir"`
+	CertDir             string `mapstructure:"certDir"`
+	CaCertFilename      string `mapstructure:"caCertFilename"`
+	CaKeyFilename       string `mapstructure:"caKeyFilename"`
+	ClientCertFilename  string `mapstructure:"clientCertFilename"`
+	InitialClusterToken string `mapstructure:"initialClusterToken"`
+	SnapshotFilename    string `mapstructure:"snapshotFilename"`
+	ClientKeyFilename   string `mapstructure:"clientKeyFilename"`
+	Endpoint            string `mapstructure:"endpoint"`
+	SnapshotLocation    string `mapstructure:"snapshotLocation"`
 	BackupConfig
 }
 
 // MasterConfig is used to backup/restore/configure master nodes
 type MasterConfig struct {
-	CertDir          string `yaml:"certDir"`
-	CaCertFile       string `yaml:"caCertFilename"`
-	CaKeyFile        string `yaml:"caKeyFilename"`
-	SaPubFile        string `yaml:"saPubFilename"`
-	SaKeyFile        string `yaml:"saKeyFilename"`
-	ProxyCaCertFile  string `yaml:"proxyCaCertFilename"`
-	ProxyKeyCertFile string `yaml:"proxyKeyCertFilename"`
+	CertDir          string `mapstructure:"certDir"`
+	CaCertFile       string `mapstructure:"caCertFilename"`
+	CaKeyFile        string `mapstructure:"caKeyFilename"`
+	SaPubFile        string `mapstructure:"saPubFilename"`
+	SaKeyFile        string `mapstructure:"saKeyFilename"`
+	ProxyCaCertFile  string `mapstructure:"proxyCaCertFilename"`
+	ProxyKeyCertFile string `mapstructure:"proxyKeyCertFilename"`
 	BackupConfig
 }
 
 // NodeConfig is used to backup/restore/configure worker nodes (backup and restore have an empty implementation right now)
 type NodeConfig struct {
-	CloudProvider string `yaml:"caKeyFilename"`
+	CloudProvider string `mapstructure:"caKeyFilename"`
 }
 
 // BackupConfig are used to generalyze backuconfiguration
 type BackupConfig struct {
-	BackupFrequency string `yaml:"backupFrequency"`
-	BackupRetention string `yaml:"backupRetention"`
+	BackupFrequency string `mapstructure:"backupFrequency"`
+	BackupRetention string `mapstructure:"backupRetention"`
 }

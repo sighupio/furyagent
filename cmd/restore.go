@@ -11,9 +11,6 @@ var restoreCmd = &cobra.Command{
 	Use:   "restore",
 	Short: "Executes restores",
 	Long:  ``,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		agentConfig, store = getConfig(cfgFile)
-	},
 }
 
 // etcdRestoreCmd represents the `furyctl restore etcd` command
@@ -42,7 +39,6 @@ var masterRestoreCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(restoreCmd)
-	restoreCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
 	restoreCmd.AddCommand(etcdRestoreCmd)
 	restoreCmd.AddCommand(masterRestoreCmd)
 }
