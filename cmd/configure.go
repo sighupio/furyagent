@@ -21,8 +21,8 @@ var etcdConfigCmd = &cobra.Command{
 	Long:  `Configures etcd node`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Does what is suppose to do
-		var etcd component.ClusterComponent = component.Etcd{}
-		err := etcd.Configure(&agentConfig.ClusterComponent, store, overwrite)
+		var etcd component.ClusterComponent = component.Etcd{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		err := etcd.Configure(overwrite)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -35,8 +35,8 @@ var masterConfigCmd = &cobra.Command{
 	Short: "Configures master node",
 	Long:  `Configures master node`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var master component.ClusterComponent = component.Master{}
-		err := master.Configure(&agentConfig.ClusterComponent, store, overwrite)
+		var master component.ClusterComponent = component.Master{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		err := master.Configure(overwrite)
 		if err != nil {
 			log.Fatal(err)
 		}

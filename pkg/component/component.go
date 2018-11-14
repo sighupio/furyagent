@@ -18,12 +18,17 @@ import (
 	"git.incubator.sh/sighup/furyagent/pkg/storage"
 )
 
+type ClusterComponentData struct {
+	*ClusterConfig
+	*storage.Data
+}
+
 // ClusterComponent interface represent the basic concept of the componet: etcd, master, node
 type ClusterComponent interface {
-	Backup(*ClusterConfig, *storage.Data) error
-	Restore(*ClusterConfig, *storage.Data) error
-	Configure(*ClusterConfig, *storage.Data, bool) error
-	Init(*ClusterConfig, *storage.Data, string) error
+	Backup() error
+	Restore() error
+	Configure(bool) error
+	Init(string) error
 }
 
 // ClusterConfig represents the configuration for the whole cluster

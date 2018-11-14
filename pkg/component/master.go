@@ -14,11 +14,6 @@
 
 package component
 
-import (
-	"git.incubator.sh/sighup/furyagent/pkg/storage"
-	"path/filepath"
-)
-
 const (
 	MasterSaKey     = "sa.key"
 	MasterSaPub     = "sa.pub"
@@ -29,39 +24,41 @@ const (
 )
 
 // Master implements the ClusterComponent interface
-type Master struct{}
+type Master struct {
+	ClusterComponentData
+}
 
 // Backup implements
-func (m Master) Backup(c *ClusterConfig, store *storage.Data) error {
+func (m Master) Backup() error {
 	return nil
 }
 
 // Restore implements
-func (m Master) Restore(c *ClusterConfig, store *storage.Data) error {
+func (m Master) Restore() error {
 	return nil
 }
-func (m Master) getFileMappings(c *ClusterConfig) [][]string {
+func (m Master) getFileMappings() [][]string {
 	return [][]string{
-		[]string{c.Master.CaCertFile, MasterCaCrt},
-		[]string{c.Master.CaKeyFile, MasterCaKey},
-		[]string{c.Master.SaKeyFile, MasterSaKey},
-		[]string{c.Master.SaPubFile, MasterSaPub},
-		[]string{c.Master.ProxyCaCertFile, MasterFProxyCrt},
-		[]string{c.Master.ProxyKeyCertFile, MasterFProxyKey},
+		[]string{m.Master.CaCertFile, MasterCaCrt},
+		[]string{m.Master.CaKeyFile, MasterCaKey},
+		[]string{m.Master.SaKeyFile, MasterSaKey},
+		[]string{m.Master.SaPubFile, MasterSaPub},
+		[]string{m.Master.ProxyCaCertFile, MasterFProxyCrt},
+		[]string{m.Master.ProxyKeyCertFile, MasterFProxyKey},
 	}
 }
 
 // Configure implements
-func (m Master) Configure(c *ClusterConfig, store *storage.Data, overwrite bool) error {
+func (m Master) Configure(overwrite bool) error {
 	// remove, create and download new certs
-	files := m.getFileMappings(c)
-	bucketDir := filepath.Join("pki", "master")
-	return store.DownloadFilesToDirectory(files, c.Master.CertDir, bucketDir, overwrite)
+	files := m.getFileMappings()
+	bucketDir := "pki/master"
+	return m.DownloadFilesToDirectory(files, m.Master.CertDir, bucketDir, overwrite)
 }
 
-func (m Master) Init(c *ClusterConfig, store *storage.Data, dir string) error {
+func (m Master) Init(dir string) error {
 	// remove, create and download new certs
-	files := m.getFileMappings(c)
+	files := m.getFileMappings()
 	bucketDir := "pki/master"
-	return store.UploadFilesFromDirectory(files, dir, bucketDir)
+	return m.UploadFilesFromDirectory(files, dir, bucketDir)
 }

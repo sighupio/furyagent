@@ -17,7 +17,6 @@ package component
 import (
 	"context"
 	"fmt"
-	"git.incubator.sh/sighup/furyagent/pkg/storage"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.etcd.io/etcd/pkg/transport"
@@ -34,19 +33,21 @@ const (
 )
 
 // Etcd implements the ClusterComponent Interface
-type Etcd struct{}
+type Etcd struct {
+	ClusterComponentData
+}
 
-func getEtcdCfg(c *ClusterConfig) (*clientv3.Config, error) {
+func getEtcdCfg(c EtcdConfig) (*clientv3.Config, error) {
 	cfg := clientv3.Config{
-		Endpoints:   []string{c.Etcd.Endpoint},
+		Endpoints:   []string{c.Endpoint},
 		DialTimeout: 5 * time.Second,
 	}
 	// Setup TLS config if CAFile is provided into configurations
-	if c.Etcd.ClientCertFilename != "" {
+	if c.ClientCertFilename != "" {
 		tlsInfo := transport.TLSInfo{
-			CertFile:      filepath.Join(c.Etcd.CertDir, c.Etcd.ClientCertFilename),
-			KeyFile:       filepath.Join(c.Etcd.CertDir, c.Etcd.ClientKeyFilename),
-			TrustedCAFile: filepath.Join(c.Etcd.CertDir, c.Etcd.CaCertFilename),
+			CertFile:      filepath.Join(c.CertDir, c.ClientCertFilename),
+			KeyFile:       filepath.Join(c.CertDir, c.ClientKeyFilename),
+			TrustedCAFile: filepath.Join(c.CertDir, c.CaCertFilename),
 		}
 		tlsConfig, err := tlsInfo.ClientConfig()
 		if err != nil {
@@ -63,9 +64,9 @@ func getBucketPathEtcd(c *ClusterConfig) string {
 }
 
 // Backup implements
-func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
-	filePath := filepath.Join(c.Etcd.SnapshotLocation, c.Etcd.SnapshotFilename)
-	cfg, err := getEtcdCfg(c)
+func (e Etcd) Backup() error {
+	filePath := filepath.Join(e.Etcd.SnapshotLocation, e.Etcd.SnapshotFilename)
+	cfg, err := getEtcdCfg(e.Etcd)
 	if err != nil {
 		return err
 	}
@@ -74,43 +75,44 @@ func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 	if err != nil {
 		return err
 	}
-	err = store.UploadFile(getBucketPathEtcd(c), filePath)
+	e.UploadFile(getBucketPathEtcd(e.ClusterConfig), filePath)
 	return err
 }
 
 // Restore implements
-func (e Etcd) Restore(c *ClusterConfig, store *storage.Data) error {
+func (e Etcd) Restore() error {
 	// the snapshot location path
-	filePath := filepath.Join(c.Etcd.SnapshotLocation, c.Etcd.SnapshotFilename)
+	filePath := filepath.Join(e.Etcd.SnapshotLocation, e.Etcd.SnapshotFilename)
 	f, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
 	// downloading the snapshot to the snapshot location
-	err = store.Download(getBucketPathEtcd(c), f)
+	bucketPath := getBucketPathEtcd(e.ClusterConfig)
+	err = e.Download(bucketPath, f)
 	if err != nil {
-		log.Println("no %s found in bucket", getBucketPathEtcd(c))
+		log.Println("no %s found in bucket", bucketPath)
 		return err
 	}
 	// removing bkups
-	backupDir := c.Etcd.DataDir + ".bkup"
+	backupDir := e.Etcd.DataDir + ".bkup"
 	err = os.RemoveAll(backupDir)
 	if err != nil {
 		return err
 	}
 	// moving old data to original_name.bkup
-	err = os.Rename(c.Etcd.DataDir, backupDir)
+	err = os.Rename(e.Etcd.DataDir, backupDir)
 	if err != nil {
 		return err
 	}
 	restoreConf := snapshot.RestoreConfig{
 		SnapshotPath: filePath,
-		Name:         c.NodeName,
+		Name:         e.NodeName,
 		// probably we'll have to modify this part to handle ha etcd
-		InitialCluster:      fmt.Sprintf("%s=%s", c.NodeName, c.Etcd.Endpoint),
-		InitialClusterToken: c.Etcd.InitialClusterToken,
-		OutputDataDir:       c.Etcd.DataDir,
-		PeerURLs:            []string{c.Etcd.Endpoint},
+		InitialCluster:      fmt.Sprintf("%s=%s", e.NodeName, e.Etcd.Endpoint),
+		InitialClusterToken: e.Etcd.InitialClusterToken,
+		OutputDataDir:       e.Etcd.DataDir,
+		PeerURLs:            []string{e.Etcd.Endpoint},
 	}
 
 	sp := snapshot.NewV3(zap.NewExample())
@@ -118,20 +120,23 @@ func (e Etcd) Restore(c *ClusterConfig, store *storage.Data) error {
 	return sp.Restore(restoreConf)
 }
 
-func (e Etcd) getFileMappings(c *ClusterConfig) [][]string {
-	return [][]string{[]string{c.Etcd.CaCertFilename, EtcdCaCrt}, []string{c.Etcd.CaKeyFilename, EtcdCaKey}}
+func (e Etcd) getFileMappings() [][]string {
+	return [][]string{
+		[]string{e.Etcd.CaCertFilename, EtcdCaCrt},
+		[]string{e.Etcd.CaKeyFilename, EtcdCaKey},
+	}
 }
 
-func (e Etcd) Configure(c *ClusterConfig, store *storage.Data, overwrite bool) error {
+func (e Etcd) Configure(overwrite bool) error {
 	// remove, create and download new certs
-	files := e.getFileMappings(c)
+	files := e.getFileMappings()
 	bucketDir := "pki/etcd"
-	return store.DownloadFilesToDirectory(files, c.Etcd.CertDir, bucketDir, overwrite)
+	return e.DownloadFilesToDirectory(files, e.Etcd.CertDir, bucketDir, overwrite)
 }
 
-func (e Etcd) Init(c *ClusterConfig, store *storage.Data, dir string) error {
+func (e Etcd) Init(dir string) error {
 	// uploads new certs
-	files := e.getFileMappings(c)
+	files := e.getFileMappings()
 	bucketDir := "pki/etcd"
-	return store.UploadFilesFromDirectory(files, dir, bucketDir)
+	return e.UploadFilesFromDirectory(files, dir, bucketDir)
 }

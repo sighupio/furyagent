@@ -19,8 +19,8 @@ var etcdRestoreCmd = &cobra.Command{
 	Short: "Restores etcd node",
 	Long:  `Restores etcd node`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var etcd component.ClusterComponent = component.Etcd{}
-		err := etcd.Restore(&agentConfig.ClusterComponent, store)
+		var etcd component.ClusterComponent = component.Etcd{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		err := etcd.Restore()
 		if err != nil {
 			log.Fatal(err)
 		}

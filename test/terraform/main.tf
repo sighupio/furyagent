@@ -10,7 +10,7 @@ resource "scaleway_server" "furyagent-test"{
 
 data "scaleway_image" "furyagent-test" {
   architecture = "x86_64"
-  name         = "Ubuntu Xenial"
+  name         = "Ubuntu Bionic"
 }
 
 resource "scaleway_ip" "furyagent-test-ip" {

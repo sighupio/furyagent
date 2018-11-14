@@ -21,8 +21,8 @@ var etcdInitCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Does what is suppose to do
-		var etcd component.ClusterComponent = component.Etcd{}
-		err := etcd.Init(&agentConfig.ClusterComponent, store, initDir)
+		var etcd component.ClusterComponent = component.Etcd{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		err := etcd.Init(initDir)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -35,8 +35,8 @@ var masterInitCmd = &cobra.Command{
 	Short: "uploads master certificates to s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var master component.ClusterComponent = component.Master{}
-		err := master.Init(&agentConfig.ClusterComponent, store, initDir)
+		var master component.ClusterComponent = component.Master{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		err := master.Init(initDir)
 		if err != nil {
 			log.Fatal(err)
 		}
