@@ -183,6 +183,7 @@ func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, t
 }
 
 func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, fromPath string, overwrite bool) error {
+	os.MkdirAll(localDir, os.ModeDir)
 	for _, fileSrcDst := range files {
 		local, remote := fileSrcDst[0], fileSrcDst[1]
 		file := filepath.Join(localDir, local)

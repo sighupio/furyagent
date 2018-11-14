@@ -45,7 +45,7 @@ var masterConfigCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(configureCmd)
-	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwite", false, "overwrite config files (default is `false`)")
+	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite config files (default is `false`)")
 	configureCmd.AddCommand(etcdConfigCmd)
 	configureCmd.AddCommand(masterConfigCmd)
 }

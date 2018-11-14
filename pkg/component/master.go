@@ -25,7 +25,7 @@ const (
 	MasterFProxyCrt = "front-proxy-ca.crt"
 	MasterFProxyKey = "front-proxy-ca.key"
 	MasterCaKey     = "ca.key"
-	MasterCaCrt     = "ca.pub"
+	MasterCaCrt     = "ca.crt"
 )
 
 // Master implements the ClusterComponent interface
