@@ -28,6 +28,11 @@ import (
 	"time"
 )
 
+const (
+	EtcdCaCrt = "ca.crt"
+	EtcdCaKey = "ca.key"
+)
+
 // Etcd implements the ClusterComponent Interface
 type Etcd struct{}
 
@@ -70,17 +75,7 @@ func (e Etcd) Backup(c *ClusterConfig, store *storage.Data) error {
 		return err
 	}
 	err = store.UploadFile(getBucketPathEtcd(c), filePath)
-	if err != nil {
-		return err
-	}
-	for _, filename := range []string{c.Etcd.CaCertFilename, c.Etcd.CaKeyFilename} {
-		bucketPath := filepath.Join("pki", c.NodeName, filename)
-		err = store.UploadFile(bucketPath, filepath.Join(c.Etcd.CertDir, filename))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return err
 }
 
 // Restore implements
@@ -123,9 +118,20 @@ func (e Etcd) Restore(c *ClusterConfig, store *storage.Data) error {
 	return sp.Restore(restoreConf)
 }
 
-func (e Etcd) Configure(c *ClusterConfig, store *storage.Data) error {
+func (e Etcd) getFileMappings(c *ClusterConfig) [][]string {
+	return [][]string{[]string{c.Etcd.CaCertFilename, EtcdCaCrt}, []string{c.Etcd.CaKeyFilename, EtcdCaKey}}
+}
+
+func (e Etcd) Configure(c *ClusterConfig, store *storage.Data, overwrite bool) error {
 	// remove, create and download new certs
-	files := []string{c.Etcd.CaCertFilename, c.Etcd.CaKeyFilename}
-	bucketDir := filepath.Join("pki", c.NodeName)
-	return downloadFilesToDirectory(files, c.Etcd.CertDir, bucketDir, store)
+	files := e.getFileMappings(c)
+	bucketDir := "pki/etcd"
+	return store.DownloadFilesToDirectory(files, c.Etcd.CertDir, bucketDir, overwrite)
+}
+
+func (e Etcd) Init(c *ClusterConfig, store *storage.Data, dir string) error {
+	// uploads new certs
+	files := e.getFileMappings(c)
+	bucketDir := "pki/etcd"
+	return store.UploadFilesFromDirectory(files, dir, bucketDir)
 }

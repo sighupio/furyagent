@@ -12,6 +12,7 @@ var configureCmd = &cobra.Command{
 	Short: "Executes configuration",
 	Long:  ``,
 }
+var overwrite bool
 
 // etcdBackupCmd represents the `furyctl backup etcd` command
 var etcdConfigCmd = &cobra.Command{
@@ -21,7 +22,7 @@ var etcdConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Does what is suppose to do
 		var etcd component.ClusterComponent = component.Etcd{}
-		err := etcd.Configure(&agentConfig.ClusterComponent, store)
+		err := etcd.Configure(&agentConfig.ClusterComponent, store, overwrite)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -35,7 +36,7 @@ var masterConfigCmd = &cobra.Command{
 	Long:  `Configures master node`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var master component.ClusterComponent = component.Master{}
-		err := master.Configure(&agentConfig.ClusterComponent, store)
+		err := master.Configure(&agentConfig.ClusterComponent, store, overwrite)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -44,7 +45,8 @@ var masterConfigCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(backupCmd)
-	configureCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
+	configureCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "furyagent.yml", "config file (default is `furyagent.yaml`)")
+	configureCmd.PersistentFlags().BoolVarP(&overwrite, "overwite", "ow", false, "overwrite config files (default is `false`)")
 	configureCmd.AddCommand(etcdConfigCmd)
 	configureCmd.AddCommand(masterConfigCmd)
 }

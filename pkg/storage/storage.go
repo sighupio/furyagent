@@ -19,6 +19,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/graymeta/stow"
 	"github.com/graymeta/stow/local"
@@ -167,4 +168,39 @@ func (s *Data) UploadFile(filename, localPath string) error {
 		return err
 	}
 	return s.Upload(filename, fileSize, r)
+}
+
+func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, toPath string) error {
+	for _, fileSrcDest := range files {
+		local, remote := fileSrcDest[0], fileSrcDest[1]
+		bucketPath := filepath.Join(toPath, remote)
+		err := store.UploadFile(bucketPath, filepath.Join(localDir, local))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, fromPath string, overwrite bool) error {
+	for _, fileSrcDst := range files {
+		local, remote := fileSrcDst[0], fileSrcDst[1]
+		file := filepath.Join(localDir, local)
+		if overwrite {
+			os.Remove(file)
+		} else if _, err := os.Stat(file); !os.IsNotExist(err) {
+			log.Fatal("file %s already exists, use --overwrite=true", file)
+		}
+		newFile, err := os.Create(file)
+		if err != nil {
+			return err
+		}
+		bucketPath := filepath.Join(fromPath, remote)
+		err = store.Download(bucketPath, newFile)
+		if err != nil {
+			log.Println("no %s found in bucket", bucketPath)
+			return err
+		}
+	}
+	return nil
 }

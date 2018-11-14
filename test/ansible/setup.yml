@@ -28,11 +28,11 @@
   roles:
   - etcd
 
-- name: Run tests
+- name: Etcd backup and restore test
   hosts: all
   become: true
   tasks:
-    - name: Etcd test 
+    - name: Backup and then restore
       shell: |
         echo "---------------- written before backup: ---------------" 
         etcdctl put foo v1
@@ -48,7 +48,6 @@
         systemctl stop etcd
         echo "---------------- restoring: ---------------------------" 
         furyagent restore etcd
-        furyagent configure etcd
         echo "---------------- restarting etcd: ---------------------" 
         systemctl start etcd
         echo "---------------- read after restoring: ----------------"
@@ -77,4 +76,30 @@
       debug:
         var: etcd_test_result
       when: "'v1' not in etcd_test_result.stdout"
+
+- name: Init and configure test
+  hosts: all
+  become: true
+  tasks:
+    - name: Etcd init 
+      shell: |
+        cd /etc/etcd
+        mv pki pki.bkup
+        mkdir pki
+        cd pki
+        furyagent init etcd --config /root/furyagent.yml
+
+    - name: Etcd configure 
+      shell: |
+        cd /etc/etcd/pki
+        echo NOT A CERT | tee ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem > /dev/null
+         echo "---------------- stopping etcd: -----------------------"
+        systemctl stop etcd
+        echo "---------------- restoring: ---------------------------" 
+        furyagent configure etcd --config /root/furyagent.yml
+        echo "---------------- restarting etcd: ---------------------" 
+        systemctl start etcd
+        cat ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem
+      register: etcd_test_init_result
+      failed_when: "'NOT A CERT' in etcd_test_init_result"
 
