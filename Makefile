@@ -11,7 +11,7 @@ test-furyagent:
 	cd test && $(MAKE) test
 
 vendor:
-	go mod vendor
+	go mod download
 
 install_deps:
 	go get github.com/mitchellh/gox
