@@ -46,7 +46,7 @@ var masterConfigCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(backupCmd)
 	configureCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "furyagent.yml", "config file (default is `furyagent.yaml`)")
-	configureCmd.PersistentFlags().BoolVarP(&overwrite, "overwite", "ow", false, "overwrite config files (default is `false`)")
+	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwite", false, "overwrite config files (default is `false`)")
 	configureCmd.AddCommand(etcdConfigCmd)
 	configureCmd.AddCommand(masterConfigCmd)
 }
