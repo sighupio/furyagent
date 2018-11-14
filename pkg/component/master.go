@@ -23,7 +23,7 @@ const (
 	MasterSaKey     = "sa.key"
 	MasterSaPub     = "sa.pub"
 	MasterFProxyCrt = "front-proxy-ca.crt"
-	MasteFProxyKey  = "front-proxy-ca.key"
+	MasterFProxyKey = "front-proxy-ca.key"
 	MasterCaKey     = "ca.key"
 	MasterCaCrt     = "ca.pub"
 )
@@ -46,8 +46,8 @@ func (m Master) getFileMappings(c *ClusterConfig) [][]string {
 		[]string{c.Master.CaKeyFile, MasterCaKey},
 		[]string{c.Master.SaKeyFile, MasterSaKey},
 		[]string{c.Master.SaPubFile, MasterSaPub},
-		[]string{c.Master.ProxyCaCertFile, MasteFProxyKey},
-		[]string{c.Master.ProxyKeyCertFile, MasteFProxyKey},
+		[]string{c.Master.ProxyCaCertFile, MasterFProxyKey},
+		[]string{c.Master.ProxyKeyCertFile, MasterFProxyCrt},
 	}
 }
 
