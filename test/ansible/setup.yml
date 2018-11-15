@@ -9,7 +9,7 @@
     - name: Wait 600 seconds for target connection to become reachable/usable
       wait_for_connection:
     - name: install python
-      raw: "sudo apt-get update -y && sudo apt-get install python -y"
+      raw: "apt-get update -y && apt-get install python -y"
     - name: copy furyagent.yml
       copy:
         src: furyagent.yml
@@ -28,30 +28,17 @@
   roles:
   - etcd
 
-- name: Etcd backup and restore test
+- name: furyagent test
   hosts: all
   become: true
   tasks:
-    - name: Backup and then restore
-      shell: |
-        echo "---------------- written before backup: ---------------" 
-        etcdctl put foo v1
-        etcdctl get foo
-        echo "---------------- backup: ------------------------------" 
-        furyagent backup etcd
-        echo "---------------- written before restoring: ------------"
-        etcdctl put foo v2
-        etcdctl get foo
-        echo "---------------- read before restoring: ---------------"
-        etcdctl get foo
-        echo "---------------- stopping etcd: -----------------------"
-        systemctl stop etcd
-        echo "---------------- restoring: ---------------------------" 
-        furyagent restore etcd
-        echo "---------------- restarting etcd: ---------------------" 
-        systemctl start etcd
-        echo "---------------- read after restoring: ----------------"
-        etcdctl get foo
+    - name: checking etcd started
+      service:
+        name: etcd
+        state: restarted
+
+    - name: writing foo=v1 and backup
+      shell: etcdctl put foo v1 && furyagent backup etcd
       environment:
         ETCDCTL_API: 3 
         ETCDCTL_DIAL_TIMEOUT: 3s
@@ -59,11 +46,31 @@
         ETCDCTL_CERT: /etc/etcd/pki/etcdctl-client.pem
         ETCDCTL_KEY: /etc/etcd/pki/etcdctl-client-key.pem
 
-    - name: Etcd check
+    - name: writing foo=v2 
+      shell: etcdctl put foo v2
+      environment:
+        ETCDCTL_API: 3 
+        ETCDCTL_DIAL_TIMEOUT: 3s
+        ETCDCTL_CACERT: /etc/etcd/pki/ca.pem
+        ETCDCTL_CERT: /etc/etcd/pki/etcdctl-client.pem
+        ETCDCTL_KEY: /etc/etcd/pki/etcdctl-client-key.pem
+
+    - name: check etcd stopped 
+      service:
+        name: etcd
+        state: stopped 
+
+    - name: Restore etcd
+      shell: furyagent restore etcd
+
+    - name: check etcd started
+      service:
+        name: etcd
+        state: started
+
+    - name: Etcd check, should read foo=v1
+      shell: etcdctl get foo
       register: etcd_test_result
-      shell: |
-        echo "---------------- read after restoring: ----------------"
-        etcdctl get foo
       environment:
         ETCDCTL_API: 3 
         ETCDCTL_DIAL_TIMEOUT: 3s
@@ -81,25 +88,51 @@
   hosts: all
   become: true
   tasks:
-    - name: Etcd init 
-      shell: |
-        cd /etc/etcd
-        mv pki pki.bkup
-        mkdir pki
-        cd pki
-        furyagent init etcd --config /root/furyagent.yml
+    - name: writing foo=v1 
+      shell: etcdctl put foo v1
+      environment:
+        ETCDCTL_API: 3 
+        ETCDCTL_DIAL_TIMEOUT: 3s
+        ETCDCTL_CACERT: /etc/etcd/pki/ca.pem
+        ETCDCTL_CERT: /etc/etcd/pki/etcdctl-client.pem
+        ETCDCTL_KEY: /etc/etcd/pki/etcdctl-client-key.pem
 
-    - name: Etcd configure 
-      shell: |
-        cd /etc/etcd/pki
-        echo NOT A CERT | tee ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem > /dev/null
-         echo "---------------- stopping etcd: -----------------------"
-        systemctl stop etcd
-        echo "---------------- restoring: ---------------------------" 
-        furyagent configure etcd --config /root/furyagent.yml
-        echo "---------------- restarting etcd: ---------------------" 
-        systemctl start etcd
-        cat ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem
+    - name: Etcd init 
+      shell: furyagent init etcd -d=/etc/etcd/pki
+
+
+    - name: check etcd stopped 
+      service:
+        name: etcd
+        state: stopped 
+
+    - name: tamper correct certs
+      shell: echo NOT A CERT | tee ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem
+      args:
+        chdir: /etc/etcd/pki
+
+    - name: redownload certs
+      shell: furyagent configure etcd --overwrite=true
+
+    - name: redownload certs
+      shell: cat ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem
+      args:
+        chdir: /etc/etcd/pki
       register: etcd_test_init_result
       failed_when: "'NOT A CERT' in etcd_test_init_result"
 
+    - name: check etcd started
+      service:
+        name: etcd
+        state: started
+
+    - name: Etcd check, should read foo=v1
+      shell: etcdctl get foo
+      register: etcd_test_result
+      environment:
+        ETCDCTL_API: 3 
+        ETCDCTL_DIAL_TIMEOUT: 3s
+        ETCDCTL_CACERT: /etc/etcd/pki/ca.pem
+        ETCDCTL_CERT: /etc/etcd/pki/etcdctl-client.pem
+        ETCDCTL_KEY: /etc/etcd/pki/etcdctl-client-key.pem
+      failed_when: "'v1' not in etcd_test_result.stdout"

@@ -162,6 +162,7 @@ func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 }
 
 func (s *Data) UploadFile(filename, localPath string) error {
+	log.Printf("uploading %s to %s", localPath, filename)
 	fileSize, err := FileSize(localPath)
 	if err != nil {
 		return err
@@ -175,9 +176,9 @@ func (s *Data) UploadFile(filename, localPath string) error {
 
 func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, toPath string) error {
 	for _, fileSrcDest := range files {
-		local, remote := fileSrcDest[0], fileSrcDest[1]
-		bucketPath := filepath.Join(toPath, remote)
-		err := store.UploadFile(bucketPath, filepath.Join(localDir, local))
+		local, remote := filepath.Join(localDir, fileSrcDest[0]), filepath.Join(toPath, fileSrcDest[1])
+		log.Printf("trying to upload %s to %s", local, remote)
+		err := store.UploadFile(remote, local)
 		if err != nil {
 			return err
 		}

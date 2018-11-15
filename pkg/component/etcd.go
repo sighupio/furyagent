@@ -136,6 +136,7 @@ func (e Etcd) Configure(overwrite bool) error {
 func (e Etcd) Init(dir string) error {
 	// uploads new certs
 	files := e.getFileMappings()
+	log.Printf("files = %v to = %s ", files, dir)
 	bucketDir := "pki/etcd"
 	return e.UploadFilesFromDirectory(files, dir, bucketDir)
 }

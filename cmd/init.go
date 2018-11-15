@@ -46,6 +46,7 @@ var masterInitCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.PersistentFlags().StringVarP(&initDir, "directory", "d", ".", "directory with files to be uploaded (default is .)")
+
 	initCmd.AddCommand(etcdInitCmd)
 	initCmd.AddCommand(masterInitCmd)
 }
