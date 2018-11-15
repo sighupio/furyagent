@@ -13,6 +13,7 @@ mv etcd/ca-key.pem etcd/ca.key
 rm etcd/ca.csr
 
 # Generating master init CA
-kubeadm alpha phase certs ca --cert-dir=$(pwd)/master
-kubeadm alpha phase certs front-proxy-ca --cert-dir=$(pwd)/master
-kubeadm alpha phase certs sa --cert-dir=$(pwd)/master
+kubeadm alpha phase certs all --cert-dir=$(pwd)/master 
+rm master/apiserver*
+rm master/front-proxy-client*
+rm -r master/etcd
