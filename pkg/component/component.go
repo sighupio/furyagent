@@ -47,10 +47,9 @@ type EtcdConfig struct {
 	CaKeyFilename       string `mapstructure:"caKeyFilename"`
 	ClientCertFilename  string `mapstructure:"clientCertFilename"`
 	InitialClusterToken string `mapstructure:"initialClusterToken"`
-	SnapshotFilename    string `mapstructure:"snapshotFilename"`
+	SnapshotFile        string `mapstructure:"snapshotFile"`
 	ClientKeyFilename   string `mapstructure:"clientKeyFilename"`
 	Endpoint            string `mapstructure:"endpoint"`
-	SnapshotLocation    string `mapstructure:"snapshotLocation"`
 	BackupConfig
 }
 

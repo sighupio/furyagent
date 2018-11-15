@@ -13,5 +13,4 @@ run-ansible:
 	cd ansible && ansible-playbook setup.yml
 
 test:
-	$(MAKE) apply
-	$(MAKE) run-ansible
+	$(MAKE) apply run-ansible

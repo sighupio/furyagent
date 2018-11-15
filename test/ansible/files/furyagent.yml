@@ -15,8 +15,7 @@ clusterComponent:
     clientCertFilename: etcdctl-client.pem
     clientKeyFilename: etcdctl-client-key.pem
     endpoint: https://localhost:2379 # this maybe deleted (if only localhost is supported)
-    snapshotFilename: etcd-backup.db
-    snapshotLocation: /tmp
+    snapshotFile: /tmp/etcd-backup.db
     backupRetention: 24h
     backupFrequency: 15m
   master:

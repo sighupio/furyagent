@@ -28,8 +28,9 @@ import (
 )
 
 const (
-	EtcdCaCrt = "ca.crt"
-	EtcdCaKey = "ca.key"
+	EtcdCaCrt              = "ca.crt"
+	EtcdCaKey              = "ca.key"
+	SnapshotFilenameBucket = "snapshot.db"
 )
 
 // Etcd implements the ClusterComponent Interface
@@ -60,30 +61,28 @@ func getEtcdCfg(c EtcdConfig) (*clientv3.Config, error) {
 }
 
 func getBucketPathEtcd(c *ClusterConfig) string {
-	return filepath.Join("etcd", c.NodeName, c.Etcd.SnapshotFilename)
+	return filepath.Join("etcd", c.NodeName, SnapshotFilenameBucket)
 }
 
 // Backup implements
 func (e Etcd) Backup() error {
-	filePath := filepath.Join(e.Etcd.SnapshotLocation, e.Etcd.SnapshotFilename)
 	cfg, err := getEtcdCfg(e.Etcd)
 	if err != nil {
 		return err
 	}
 	sp := snapshot.NewV3(zap.NewExample())
-	err = sp.Save(context.Background(), *cfg, filePath)
+	err = sp.Save(context.Background(), *cfg, e.Etcd.SnapshotFile)
 	if err != nil {
 		return err
 	}
-	e.UploadFile(getBucketPathEtcd(e.ClusterConfig), filePath)
+	e.UploadFile(getBucketPathEtcd(e.ClusterConfig), e.Etcd.SnapshotFile)
 	return err
 }
 
 // Restore implements
 func (e Etcd) Restore() error {
 	// the snapshot location path
-	filePath := filepath.Join(e.Etcd.SnapshotLocation, e.Etcd.SnapshotFilename)
-	f, err := os.Create(filePath)
+	f, err := os.Create(e.Etcd.SnapshotFile)
 	if err != nil {
 		return err
 	}
@@ -106,7 +105,7 @@ func (e Etcd) Restore() error {
 		return err
 	}
 	restoreConf := snapshot.RestoreConfig{
-		SnapshotPath: filePath,
+		SnapshotPath: e.Etcd.SnapshotFile,
 		Name:         e.NodeName,
 		// probably we'll have to modify this part to handle ha etcd
 		InitialCluster:      fmt.Sprintf("%s=%s", e.NodeName, e.Etcd.Endpoint),
