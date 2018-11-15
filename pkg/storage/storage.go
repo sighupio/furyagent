@@ -101,13 +101,16 @@ func Init(cfg *Config) (*Data, error) {
 func (s *Data) getContainer() (stow.Container, error) {
 	container, err := s.location.Container(s.containerName)
 	if err == stow.ErrNotFound {
+		log.Println("Container not found, trying to create one!")
 		container, err = s.location.CreateContainer(s.containerName)
 		if err != nil {
 			return nil, err
 		}
 	} else if err != nil {
+		log.Println("Generic error accessing the container: ", s.containerName)
 		return nil, err
 	}
+
 	return container, nil
 }
 

@@ -14,7 +14,7 @@ require (
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/graymeta/stow v0.0.0-20181004223953-b4f789357574
 	github.com/hashicorp/go-cleanhttp v0.5.0 // indirect
-	github.com/hashicorp/go-getter v0.0.0-20180809191950-4bda8fa99001
+	github.com/hashicorp/go-getter v0.0.0-20180809191950-4bda8fa99001 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect

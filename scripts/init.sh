@@ -7,7 +7,7 @@ mkdir -p etcd
 mkdir -p master
 
 # Generating etcd init CA
-cfssl gencert -initca files/ca-csr.json | cfssljson -bare etcd/ca
+cfssl gencert -initca ca-csr.json | cfssljson -bare etcd/ca
 mv etcd/ca.pem etcd/ca.crt
 mv etcd/ca-key.pem etcd/ca.key
 rm etcd/ca.csr
