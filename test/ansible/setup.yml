@@ -6,8 +6,8 @@
   tags:
     - prepare
   tasks:
-    - name: Wait 600 seconds for target connection to become reachable/usable
-      wait_for_connection:
+#    - name: Wait 600 seconds for target connection to become reachable/usable
+#      wait_for_connection:
     - name: install python
       raw: "apt-get update -y && apt-get install python -y"
     - name: copy furyagent.yml
@@ -100,14 +100,13 @@
     - name: Etcd init 
       shell: furyagent init etcd -d=/etc/etcd/pki
 
-
     - name: check etcd stopped 
       service:
         name: etcd
         state: stopped 
 
     - name: tamper correct certs
-      shell: echo NOT A CERT | tee ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem
+      shell: echo NOT A CERT | tee ca.pem ca-key.pem 
       args:
         chdir: /etc/etcd/pki
 
@@ -115,7 +114,7 @@
       shell: furyagent configure etcd --overwrite=true
 
     - name: redownload certs
-      shell: cat ca.pem caKey.pem etcdctl-client.pem etcdctl-client-key.pem
+      shell: cat ca.pem ca-key.pem 
       args:
         chdir: /etc/etcd/pki
       register: etcd_test_init_result

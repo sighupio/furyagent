@@ -6,11 +6,13 @@ apply:
 	cd terraform && terraform apply -auto-approve && terraform output inventory > ../ansible/hosts.ini
 
 destroy:
-	cd terraform && terraform destroy
+	cd terraform && terraform destroy -auto-approve
 
 run-ansible:
 	cd .. && go build && mv -f furyagent test/ansible/files/
 	cd ansible && ansible-playbook setup.yml
 
 test:
-	$(MAKE) apply run-ansible
+	$(MAKE) apply
+	$(MAKE) run-ansible
+

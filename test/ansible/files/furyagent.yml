@@ -11,7 +11,7 @@ clusterComponent:
     certDir: /etc/etcd/pki
     dataDir: /var/lib/etcd
     caCertFilename: ca.pem
-    caKeyFilename: ca.pem
+    caKeyFilename: ca-key.pem
     clientCertFilename: etcdctl-client.pem
     clientKeyFilename: etcdctl-client-key.pem
     endpoint: https://localhost:2379 # this maybe deleted (if only localhost is supported)
@@ -20,8 +20,8 @@ clusterComponent:
     backupFrequency: 15m
   master:
     certDir: /etc/kubernetes/pki
-    caCertFilename: ca.crt
-    caKeyFilename: ca.key
+    caCertFilename: ca.pem
+    caKeyFilename: caKey.pem
     saPubFilename: sa.pub
     saKeyFilename: ca.key
     proxyCaCertFilename: front-proxy-ca.crt
