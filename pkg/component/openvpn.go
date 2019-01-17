@@ -12,6 +12,7 @@ const (
 	ServerCert = "server.crt"
 	ServerKey  = "server.key"
 	CaCert     = "ca.crt"
+	CaKey      = "ca.key"
 )
 
 var (
@@ -31,29 +32,29 @@ func (o OpenVPN) Backup() error {
 	return nil
 }
 
-// Restore implements
 func (o OpenVPN) Restore() error {
 	return nil
 }
 
 func (o OpenVPN) getFileMappings() [][]string {
 	return [][]string{
-		[]string{ServerCert, ServerCert},
 		[]string{ServerKey, ServerKey},
+		[]string{ServerKey, ServerKey},
+		[]string{CaKey, CaKey},
 		[]string{CaCert, CaCert},
 	}
 }
 
 func (o OpenVPN) Configure(overwrite bool) error {
 	files := o.getFileMappings()
-	bucketDir := "pki/openvpn"
+	bucketDir := "pki/vpn"
 	return o.DownloadFilesToDirectory(files, o.OpenVPN.CertDir, bucketDir, overwrite)
 }
 
 func (o OpenVPN) Init(dir string) error {
 	o.createServerCerts(dir)
 	files := o.getFileMappings()
-	bucketDir := "pki/openvpn"
+	bucketDir := "pki/vpn"
 	return o.UploadFilesFromDirectory(files, dir, bucketDir)
 }
 

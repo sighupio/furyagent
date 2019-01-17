@@ -94,7 +94,9 @@ S3 bucket
     │   └── ca.key
     └── vpn
         ├── ca.crt
-        └── ca.key
+        ├── ca.key
+        ├── server.crt
+        └── server.key
 
 ```
 
