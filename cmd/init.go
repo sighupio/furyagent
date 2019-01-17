@@ -43,10 +43,24 @@ var masterInitCmd = &cobra.Command{
 	},
 }
 
+var openVpnInitCmd = &cobra.Command{
+	Use:   "openvpn",
+	Short: "uploads openvpn certificates to s3",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		var openvpn component.ClusterComponent = component.OpenVPN{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		err := openvpn.Init(initDir)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.PersistentFlags().StringVarP(&initDir, "directory", "d", ".", "directory with files to be uploaded (default is .)")
 
 	initCmd.AddCommand(etcdInitCmd)
 	initCmd.AddCommand(masterInitCmd)
+	initCmd.AddCommand(openVpnInitCmd)
 }

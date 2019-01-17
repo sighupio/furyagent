@@ -43,7 +43,10 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/api v0.0.0-20181018013834-843ad2d9b9ae // indirect
 	k8s.io/apimachinery v0.0.0-20181015213631-60666be32c5d // indirect
-	k8s.io/client-go v9.0.0+incompatible // indirect
-	k8s.io/kubernetes v1.12.1
+	k8s.io/client-go v9.0.0+incompatible
+	k8s.io/cluster-bootstrap v0.0.0-20181110194056-c71be3de9a2f // indirect
+	k8s.io/klog v0.1.0 // indirect
+	k8s.io/kubernetes v1.13.2
 	k8s.io/utils v0.0.0-20181022192358-4c3feeb576b0 // indirect
+	sigs.k8s.io/yaml v1.1.0 // indirect
 )

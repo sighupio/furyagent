@@ -221,7 +221,15 @@ k8s.io/apimachinery v0.0.0-20181015213631-60666be32c5d h1:It9QEnTmJaV0JD1PckL64/
 k8s.io/apimachinery v0.0.0-20181015213631-60666be32c5d/go.mod h1:ccL7Eh7zubPUSh9A3USN90/OzHNSVN6zxzde07TDCL0=
 k8s.io/client-go v9.0.0+incompatible h1:NXWpDuPFeVB5lYP1fTqJUtwigjtmRXJNtndnN53ldGI=
 k8s.io/client-go v9.0.0+incompatible/go.mod h1:7vJpHMYJwNQCWgzmNV+VYUl1zCObLyodBc8nIyt8L5s=
+k8s.io/cluster-bootstrap v0.0.0-20181110194056-c71be3de9a2f h1:9DfiFkRozso0/0juD4UMRW8gMqhvFpXRXI6Y5AkZZ10=
+k8s.io/cluster-bootstrap v0.0.0-20181110194056-c71be3de9a2f/go.mod h1:iBSm2nwo3OaiuW8VDvc3ySDXK5SKfUrxwPvBloKG7zg=
+k8s.io/klog v0.1.0 h1:I5HMfc/DtuVaGR1KPwUrTc476K8NCqNBldC7H4dYEzk=
+k8s.io/klog v0.1.0/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
 k8s.io/kubernetes v1.12.1 h1:ud3qsh7xkSlwtboMEH1KLP2YlI0NYVYjVI/mX0jBRbY=
 k8s.io/kubernetes v1.12.1/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
+k8s.io/kubernetes v1.13.2 h1:rBz6dubDY4bfv85G6zo04v9G5wniTxvBI9yQ/QxJS3g=
+k8s.io/kubernetes v1.13.2/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/utils v0.0.0-20181022192358-4c3feeb576b0 h1:Map91+7DPj3bdgVtribD25V5vuFxbUIIu9TcC3tHSN8=
 k8s.io/utils v0.0.0-20181022192358-4c3feeb576b0/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
+sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
+sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=

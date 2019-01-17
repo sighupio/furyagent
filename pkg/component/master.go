@@ -37,6 +37,7 @@ func (m Master) Backup() error {
 func (m Master) Restore() error {
 	return nil
 }
+
 func (m Master) getFileMappings() [][]string {
 	return [][]string{
 		[]string{m.Master.CaCertFile, MasterCaCrt},

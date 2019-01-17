@@ -33,10 +33,11 @@ type ClusterComponent interface {
 
 // ClusterConfig represents the configuration for the whole cluster
 type ClusterConfig struct {
-	NodeName string       `mapstructure:"nodeName"`
-	Etcd     EtcdConfig   `mapstructure:"etcd"`
-	Master   MasterConfig `mapstructure:"master"`
-	Node     NodeConfig   `mapstructure:"node"`
+	NodeName string        `mapstructure:"nodeName"`
+	Etcd     EtcdConfig    `mapstructure:"etcd"`
+	Master   MasterConfig  `mapstructure:"master"`
+	Node     NodeConfig    `mapstructure:"node"`
+	OpenVPN  OpenVPNConfig `mapstructure:"openvpn"`
 }
 
 // EtcdConfig is used to backup/restore/configure etcd nodes
@@ -74,4 +75,8 @@ type NodeConfig struct {
 type BackupConfig struct {
 	BackupFrequency string `mapstructure:"backupFrequency"`
 	BackupRetention string `mapstructure:"backupRetention"`
+}
+
+type OpenVPNConfig struct {
+	CertDir string `mapstructure:"certDir"`
 }
