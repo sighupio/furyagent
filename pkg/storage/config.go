@@ -2,26 +2,20 @@ package storage
 
 // Config represent a configuration for working with an object storage
 type Config struct {
-	Provider   string `yml:"provider"`
-	AccessKey  string `yml:"aws_access_key"`
-	SecretKey  string `yml:"aws_secret_key"`
-	URL        string `yml:"url"`
-	Region     string `yml:"region"`
-	BucketName string `yml:"bucketName"`
-	Local
-}
-
-// Local is configuration needed to save/open file from disk
-type Local struct {
-	Path         string `yml:"path"`
-	BackupFolder string `yml:"backupFolder"`
+	Provider   string `mapstructure:"provider"`
+	AccessKey  string `mapstructure:"aws_access_key"`
+	SecretKey  string `mapstructure:"aws_secret_key"`
+	URL        string `mapstructure:"url"`
+	Region     string `mapstructure:"region"`
+	BucketName string `mapstructure:"bucketName"`
+	LocalPath  string `mapstructure:"path"`
 }
 
 // S3 is the configuration needed to save/open file from s3
 type S3 struct {
-	AccessKey  string `yml:"aws_access_key"`
-	SecretKey  string `yml:"aws_secret_key"`
-	URL        string `yml:"url"`
-	Region     string `yml:"region"`
-	BucketName string `yml:"bucketName"`
+	AccessKey  string `mapstructure:"aws_access_key"`
+	SecretKey  string `mapstructure:"aws_secret_key"`
+	URL        string `mapstructure:"url"`
+	Region     string `mapstructure:"region"`
+	BucketName string `mapstructure:"bucketName"`
 }

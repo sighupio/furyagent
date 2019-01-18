@@ -17,11 +17,11 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"os"
-
+	"git.incubator.sh/sighup/furyagent/pkg/component"
 	"git.incubator.sh/sighup/furyagent/pkg/storage"
 	"github.com/spf13/cobra"
+	"log"
+	"os"
 )
 
 var cfgFile string
@@ -66,6 +66,7 @@ var rootCmd = &cobra.Command{
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		agentConfig, store = getConfig(cfgFile)
+		data = component.ClusterComponentData{&agentConfig.ClusterComponent, store}
 	},
 }
 

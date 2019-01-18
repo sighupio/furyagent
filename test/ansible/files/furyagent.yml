@@ -1,10 +1,12 @@
 storage:
-  provider: s3 # accepted values are "s3" or "local"
-  url: "http://minio:9000"
-  AccessKey: "minio"
-  SecretKey: "miniostorage"
-  bucketName: "furyagent-test"
-  region: "eu-west-1"
+  provider: local
+  path: "."
+  #provider: s3 # accepted values are "s3" or "local"
+  #url: "http://minio:9000"
+  #AccessKey: "minio"
+  #SecretKey: "miniostorage"
+  #bucketName: "furyagent-test"
+  #region: "eu-west-1"
 clusterComponent:
   nodeName: etcd
   etcd:

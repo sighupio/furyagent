@@ -20,7 +20,7 @@ var etcdBackupCmd = &cobra.Command{
 	Long:  `Backups etcd node`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Does what is suppose to do
-		var etcd component.ClusterComponent = component.Etcd{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		var etcd component.ClusterComponent = component.Etcd{data}
 		err := etcd.Backup()
 		if err != nil {
 			log.Fatal(err)

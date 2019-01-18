@@ -52,13 +52,18 @@ func (o OpenVPN) Configure(overwrite bool) error {
 }
 
 func (o OpenVPN) Init(dir string) error {
-	o.createServerCerts(dir)
-	files := o.getFileMappings()
-	bucketDir := "pki/vpn"
-	return o.UploadFilesFromDirectory(files, dir, bucketDir)
+	certs, err := o.createServerCerts()
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := "pki/vpn"
+	if err = o.UploadFilesFromMemory(certs, path); err != nil {
+		log.Fatal(err)
+	}
+	return nil
 }
 
-func (o OpenVPN) createServerCerts(dir string) error {
+func (o OpenVPN) createServerCerts() (map[string][]byte, error) {
 
 	ca, privateKey, err := pki.NewCertificateAuthority(&config)
 	if err != nil {
@@ -70,13 +75,19 @@ func (o OpenVPN) createServerCerts(dir string) error {
 		log.Fatal(err)
 	}
 
-	if err = pki.WriteCertAndKey(dir, "ca", ca, privateKey); err != nil {
-		log.Fatal(err)
-	}
+	//if err = pki.WriteCertAndKey(dir, "ca", ca, privateKey); err != nil {
+	//log.Fatal(err)
+	//}
 
-	if err = pki.WriteCertAndKey(dir, "server", serverCert, serverKey); err != nil {
-		log.Fatal(err)
-	}
+	//if err = pki.WriteCertAndKey(dir, "server", serverCert, serverKey); err != nil {
+	//log.Fatal(err)
+	//}
 
-	return nil
+	return map[string][]byte{
+		"ca.crt":     certutil.EncodeCertPEM(ca),
+		"ca.key":     certutil.EncodePrivateKeyPEM(privateKey),
+		"server.crt": certutil.EncodeCertPEM(serverCert),
+		"server.key": certutil.EncodePrivateKeyPEM(serverKey),
+	}, nil
+
 }

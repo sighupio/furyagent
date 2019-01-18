@@ -6,22 +6,21 @@ import (
 	"log"
 )
 
-// backupCmd represents the `furyctl backup` command
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Executes initialization, uploads ca files",
 	Long:  ``,
 }
 var initDir string
+var data component.ClusterComponentData
 
-// etcdBackupCmd represents the `furyctl backup etcd` command
 var etcdInitCmd = &cobra.Command{
 	Use:   "etcd",
 	Short: "uploads etcd certificates to s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Does what is suppose to do
-		var etcd component.ClusterComponent = component.Etcd{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		var etcd component.ClusterComponent = component.Etcd{data}
 		err := etcd.Init(initDir)
 		if err != nil {
 			log.Fatal(err)
@@ -29,13 +28,12 @@ var etcdInitCmd = &cobra.Command{
 	},
 }
 
-// masterBackupCmd represents the `furyctl backup master` command
 var masterInitCmd = &cobra.Command{
 	Use:   "master",
 	Short: "uploads master certificates to s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var master component.ClusterComponent = component.Master{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		var master component.ClusterComponent = component.Master{data}
 		err := master.Init(initDir)
 		if err != nil {
 			log.Fatal(err)
@@ -48,7 +46,7 @@ var openVpnInitCmd = &cobra.Command{
 	Short: "uploads openvpn certificates to s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var openvpn component.ClusterComponent = component.OpenVPN{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		var openvpn component.ClusterComponent = component.OpenVPN{data}
 		err := openvpn.Init(initDir)
 		if err != nil {
 			log.Fatal(err)

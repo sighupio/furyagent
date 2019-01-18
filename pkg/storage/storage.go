@@ -15,8 +15,10 @@
 package storage
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -58,7 +60,6 @@ func Init(cfg *Config) (*Data, error) {
 				s3.ConfigRegion:      cfg.Region,
 			}
 		}
-
 	// case "google":
 	// 	config = stow.ConfigMap{
 	// 		google.ConfigJSON:      os.Getenv("GOOGLE_CLOUD_KEYFILE_JSON"),
@@ -79,9 +80,10 @@ func Init(cfg *Config) (*Data, error) {
 	// 	}
 	case "local":
 		config = stow.ConfigMap{
-			local.ConfigKeyPath: cfg.Path,
+			local.ConfigKeyPath: cfg.LocalPath,
 		}
-		s.containerName = cfg.BackupFolder
+		log.Println(cfg)
+		s.containerName = cfg.LocalPath
 	default:
 		return nil, fmt.Errorf("provider \"%s\" not supported", cfg.Provider)
 	}
@@ -181,6 +183,15 @@ func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, t
 		err := store.UploadFile(remote, local)
 		if err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func (store *Data) UploadFilesFromMemory(files map[string][]byte, dir string) error {
+	for filename, file := range files {
+		if _, err := store.container.Put(filepath.Join(dir, filename), ioutil.NopCloser(bytes.NewReader(file)), int64(len(file)), nil); err != nil {
+			log.Fatal(err)
 		}
 	}
 	return nil

@@ -12,6 +12,7 @@ var configureCmd = &cobra.Command{
 	Short: "Executes configuration",
 	Long:  ``,
 }
+
 var overwrite bool
 
 // etcdBackupCmd represents the `furyctl backup etcd` command
@@ -21,7 +22,7 @@ var etcdConfigCmd = &cobra.Command{
 	Long:  `Configures etcd node`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Does what is suppose to do
-		var etcd component.ClusterComponent = component.Etcd{component.ClusterComponentData{&agentConfig.ClusterComponent, store}}
+		var etcd component.ClusterComponent = component.Etcd{data}
 		err := etcd.Configure(overwrite)
 		if err != nil {
 			log.Fatal(err)
