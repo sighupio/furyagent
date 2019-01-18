@@ -82,14 +82,14 @@ func Init(cfg *Config) (*Data, error) {
 		config = stow.ConfigMap{
 			local.ConfigKeyPath: cfg.LocalPath,
 		}
-		log.Println(cfg)
+		log.Printf("Will save to local directory: %s", cfg.LocalPath)
 		s.containerName = cfg.LocalPath
 	default:
 		return nil, fmt.Errorf("provider \"%s\" not supported", cfg.Provider)
 	}
 	location, err := stow.Dial(cfg.Provider, config)
 	if err != nil {
-		return nil, fmt.Errorf("cannot dial to %s: %v", cfg.Provider, err)
+		return nil, fmt.Errorf("Cannot dial to %s: %v", cfg.Provider, err)
 	}
 	s.location = location
 	container, err := s.getContainer()

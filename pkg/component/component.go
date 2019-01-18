@@ -15,7 +15,19 @@
 package component
 
 import (
+	"crypto/x509"
 	"git.incubator.sh/sighup/furyagent/pkg/storage"
+	certutil "k8s.io/client-go/util/cert"
+	"net"
+)
+
+var (
+	CertConfig = certutil.Config{
+		CommonName:   "SIGHUP s.r.l. OpenVPN Server",
+		Organization: []string{"SIGHUP s.r.l."},
+		AltNames:     certutil.AltNames{DNSNames: []string{}, IPs: []net.IP{}},
+		Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
 )
 
 type ClusterComponentData struct {
