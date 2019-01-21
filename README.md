@@ -21,6 +21,7 @@ Flags:
 
 furyagent
 ├── init
+│   ├── node
 │   ├── etcd
 │   ├── openVPN
 │   └── master

@@ -75,6 +75,7 @@ type MasterConfig struct {
 	SaKeyFile        string `mapstructure:"saKeyFilename"`
 	ProxyCaCertFile  string `mapstructure:"proxyCaCertFilename"`
 	ProxyKeyCertFile string `mapstructure:"proxyKeyCertFilename"`
+	KubeadmConfig    string `mapstructure:"kubeadmConfig"`
 	BackupConfig
 }
 

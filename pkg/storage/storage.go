@@ -122,7 +122,7 @@ func (s *Data) Close() error {
 }
 
 // Download is the single interface to download something from Object Storage
-func (s *Data) Download(filename string, obj io.WriteCloser) error {
+func (s *Data) Download(filename string, obj io.Writer) error {
 	item, err := s.container.Item(filename)
 	if err == stow.ErrNotFound {
 		return fmt.Errorf("Item %s not found", filename)
@@ -226,4 +226,15 @@ func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, f
 		}
 	}
 	return nil
+}
+
+func (store *Data) DownloadFilesToMemory(files []string, dir string) (results map[string][]byte, err error) {
+	for _, file := range files {
+		var f []byte
+		if err = store.Download(filepath.Join(dir, file), bytes.NewBuffer(f)); err != nil {
+			return nil, err
+		}
+		results[file] = f
+	}
+	return results, nil
 }

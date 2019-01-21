@@ -14,6 +14,12 @@
 
 package component
 
+import (
+	"bytes"
+	"log"
+	"os/exec"
+)
+
 const (
 	MasterSaKey     = "sa.key"
 	MasterSaPub     = "sa.pub"
@@ -21,6 +27,8 @@ const (
 	MasterFProxyKey = "front-proxy-ca.key"
 	MasterCaKey     = "ca.key"
 	MasterCaCrt     = "ca.crt"
+	Token           = "token.txt"
+	NodePath        = "nodes"
 )
 
 // Master implements the ClusterComponent interface
@@ -54,12 +62,36 @@ func (m Master) Configure(overwrite bool) error {
 	// remove, create and download new certs
 	files := m.getFileMappings()
 	bucketDir := "pki/master"
-	return m.DownloadFilesToDirectory(files, m.Master.CertDir, bucketDir, overwrite)
+	err := m.DownloadFilesToDirectory(files, m.Master.CertDir, bucketDir, overwrite)
+	if err != nil {
+		log.Fatal(err)
+	}
+	initCmd := exec.Command("kubeadm", "init", "--config=", m.Master.KubeadmConfig)
+	if err = initCmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+	tokenCmd := exec.Command("kubeadm", "token", "create", "--print-join-command", "--ttl=0")
+	joinCommand := &bytes.Buffer{}
+	tokenCmd.Stdout = joinCommand
+	if err = tokenCmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("use %s to join the cluster", string(joinCommand.Bytes()))
+	if err = m.UploadFilesFromMemory(map[string][]byte{
+		Token: joinCommand.Bytes(),
+	}, NodePath); err != nil {
+		log.Fatal(err)
+	}
+	return nil
 }
 
 func (m Master) Init(dir string) error {
 	// remove, create and download new certs
 	files := m.getFileMappings()
 	bucketDir := "pki/master"
-	return m.UploadFilesFromDirectory(files, dir, bucketDir)
+	err := m.UploadFilesFromDirectory(files, dir, bucketDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
 }
