@@ -14,21 +14,39 @@
 
 package component
 
+import (
+	"log"
+	"os/exec"
+)
+
 // Node represent the object that reflects what nodes need (implements ClusterComponent)
 type Node struct {
+	ClusterComponentData
 }
 
 // Backup of a node is Empty
-func (n *Node) Backup(cfg *ClusterConfig) error {
+func (n *Node) Backup() error {
 	return nil
 }
 
 // Restore of a node is Empty
-func (n *Node) Restore(cfg *ClusterConfig) error {
+func (n *Node) Restore() error {
 	return nil
 }
 
 // Configure basicall joins the nodes to the cluster, configures KUBELET_EXTRA_ARGS and restart kubelet and docker in case of necessity
-func (n *Node) Configure(cfg *ClusterConfig) error {
+func (n *Node) Configure(overwrite bool) error {
+	files, err := n.DownloadFilesToMemory([]string{Token}, NodePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	joinCommand := exec.Command(string(files[Token]))
+	if err = joinCommand.Run(); err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func (n *Node) Init(dir string) error {
 	return nil
 }
