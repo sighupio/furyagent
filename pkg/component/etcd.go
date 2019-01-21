@@ -21,6 +21,8 @@ import (
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.etcd.io/etcd/pkg/transport"
 	"go.uber.org/zap"
+	certutil "k8s.io/client-go/util/cert"
+	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,6 +33,7 @@ const (
 	EtcdCaCrt              = "ca.crt"
 	EtcdCaKey              = "ca.key"
 	SnapshotFilenameBucket = "snapshot.db"
+	etcdPath               = "pki/etcd"
 )
 
 // Etcd implements the ClusterComponent Interface
@@ -129,14 +132,18 @@ func (e Etcd) getFileMappings() [][]string {
 func (e Etcd) Configure(overwrite bool) error {
 	// remove, create and download new certs
 	files := e.getFileMappings()
-	bucketDir := "pki/etcd"
-	return e.DownloadFilesToDirectory(files, e.Etcd.CertDir, bucketDir, overwrite)
+	return e.DownloadFilesToDirectory(files, e.Etcd.CertDir, etcdPath, overwrite)
 }
 
 func (e Etcd) Init(dir string) error {
-	// uploads new certs
-	files := e.getFileMappings()
-	log.Printf("files = %v to = %s ", files, dir)
-	bucketDir := "pki/etcd"
-	return e.UploadFilesFromDirectory(files, dir, bucketDir)
+	ca, privateKey, err := pki.NewCertificateAuthority(&CertConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	certs := map[string][]byte{
+		EtcdCaCrt: certutil.EncodeCertPEM(ca),
+		EtcdCaKey: certutil.EncodePrivateKeyPEM(privateKey),
+	}
+	log.Printf("files = %v to = %s ", certs, dir)
+	return e.UploadFilesFromMemory(certs, etcdPath)
 }

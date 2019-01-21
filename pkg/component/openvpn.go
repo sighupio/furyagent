@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	ServerCert  = "server.crt"
-	ServerKey   = "server.key"
-	CaCert      = "ca.crt"
-	CaKey       = "ca.key"
-	OpenVPNPath = "pki/vpn"
+	OpenVPNServerCert = "server.crt"
+	OpenVPNServerKey  = "server.key"
+	OpenVPNCaCert     = "ca.crt"
+	OpenVPNCaKey      = "ca.key"
+	OpenVPNPath       = "pki/vpn"
 )
 
 type OpenVPN struct {
@@ -28,10 +28,10 @@ func (o OpenVPN) Restore() error {
 
 func (o OpenVPN) getFileMappings() [][]string {
 	return [][]string{
-		[]string{ServerKey, ServerKey},
-		[]string{ServerKey, ServerKey},
-		[]string{CaKey, CaKey},
-		[]string{CaCert, CaCert},
+		[]string{OpenVPNServerKey, OpenVPNServerKey},
+		[]string{OpenVPNServerKey, OpenVPNServerKey},
+		[]string{OpenVPNCaKey, OpenVPNCaKey},
+		[]string{OpenVPNCaCert, OpenVPNCaCert},
 	}
 }
 
@@ -52,10 +52,10 @@ func (o OpenVPN) Init(dir string) error {
 	}
 
 	certs := map[string][]byte{
-		CaCert:     certutil.EncodeCertPEM(ca),
-		CaKey:      certutil.EncodePrivateKeyPEM(privateKey),
-		ServerCert: certutil.EncodeCertPEM(serverCert),
-		ServerKey:  certutil.EncodePrivateKeyPEM(serverKey),
+		OpenVPNCaCert:     certutil.EncodeCertPEM(ca),
+		OpenVPNCaKey:      certutil.EncodePrivateKeyPEM(privateKey),
+		OpenVPNServerCert: certutil.EncodeCertPEM(serverCert),
+		OpenVPNServerKey:  certutil.EncodePrivateKeyPEM(serverKey),
 	}
 	if err = o.UploadFilesFromMemory(certs, OpenVPNPath); err != nil {
 		log.Fatal(err)
