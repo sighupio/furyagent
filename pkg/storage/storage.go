@@ -152,6 +152,9 @@ func (s *Data) Download(filename string, obj io.WriteCloser) error {
 func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 	//upload snapshot to container with given name
 	defer obj.Close()
+	if _, err := s.container.Item(filename); err == nil {
+		log.Fatalf("%s exists already", filename)
+	}
 	item, err := s.container.Put(filename, obj, size, nil)
 	if err != nil {
 		return err
@@ -190,7 +193,11 @@ func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, t
 
 func (store *Data) UploadFilesFromMemory(files map[string][]byte, dir string) error {
 	for filename, file := range files {
-		if _, err := store.container.Put(filepath.Join(dir, filename), ioutil.NopCloser(bytes.NewReader(file)), int64(len(file)), nil); err != nil {
+		path := filepath.Join(dir, filename)
+		if _, err := store.container.Item(path); err == nil {
+			log.Fatalf("%s exists already", path)
+		}
+		if _, err := store.container.Put(path, ioutil.NopCloser(bytes.NewReader(file)), int64(len(file)), nil); err != nil {
 			log.Fatal(err)
 		}
 	}
