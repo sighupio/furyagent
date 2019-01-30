@@ -16,14 +16,20 @@ package component
 
 import (
 	"bytes"
+	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta1"
 	"log"
 	"os/exec"
+	"path/filepath"
 )
 
 // Node represent the object that reflects what nodes need (implements ClusterComponent)
 type Node struct {
 	ClusterComponentData
 }
+
+const (
+	kubeletBootstrapConfig = "bootstrap-kubelet.conf"
+)
 
 // Backup of a node is Empty
 func (n *Node) Backup() error {
@@ -35,16 +41,13 @@ func (n *Node) Restore() error {
 	return nil
 }
 
-// Configure basicall joins the nodes to the cluster, configures KUBELET_EXTRA_ARGS and restart kubelet and docker in case of necessity
+// Configure basically joins the nodes to the cluster, configures KUBELET_EXTRA_ARGS and restart kubelet and docker in case of necessity
 func (n *Node) Configure(overwrite bool) error {
-	files, err := n.DownloadFilesToMemory([]string{Token}, NodePath)
-	if err != nil {
+	//download kubelet bootstrap file
+	if err := n.DownloadFile(filepath.Join(ConfigurationRemoteDir, kubeletBootstrapConfig), n.Node.KubeletBootstrapConfig, overwrite); err != nil {
 		log.Fatal(err)
 	}
-	joinCommand := exec.Command(string(files[Token]))
-	if err = joinCommand.Run(); err != nil {
-		log.Fatal(err)
-	}
+
 	return nil
 }
 
@@ -53,17 +56,27 @@ func (n *Node) Init(dir string) error {
 	if err := initCmd.Run(); err != nil {
 		log.Fatal(err)
 	}
+
+	//upload kubelet bootstrap configfile
+	if err := UploadFilesFromMemory(map[string][]byte{
+		//KubeletBootstrapConfig:
+	}, ConfigurationRemoteDir); err != nil {
+		log.Fatal(err)
+	}
+
+	// TOBEREMOVED
 	tokenCmd := exec.Command("kubeadm", "token", "create", "--print-join-command", "--ttl=0")
 	joinCommand := &bytes.Buffer{}
 	tokenCmd.Stdout = joinCommand
 	if err := tokenCmd.Run(); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("use %s to join the cluster", string(joinCommand.Bytes()))
+
 	if err := n.UploadFilesFromMemory(map[string][]byte{
 		Token: joinCommand.Bytes(),
 	}, NodePath); err != nil {
 		log.Fatal(err)
 	}
+	// ENDTOBEREMOVED
 	return nil
 }

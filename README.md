@@ -82,6 +82,7 @@ S3 bucket
 ├── configurations
 │   ├── kustomization.yaml
 │   ├── audit.yaml
+│   ├── bootstrap-kubelet.conf
 │   ├── nodeSelector.yaml
 │   └── kubeadm.yml
 └── pki

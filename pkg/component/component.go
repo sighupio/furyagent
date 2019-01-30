@@ -81,7 +81,8 @@ type MasterConfig struct {
 
 // NodeConfig is used to backup/restore/configure worker nodes (backup and restore have an empty implementation right now)
 type NodeConfig struct {
-	CloudProvider string `mapstructure:"caKeyFilename"`
+	CloudProvider          string `mapstructure:"cloudProvider"`
+	KubeletBootstrapConfig string `mapstructure:"kubeletBootstrapConfig"`
 }
 
 // BackupConfig are used to generalyze backuconfiguration
