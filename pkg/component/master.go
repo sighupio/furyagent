@@ -16,17 +16,25 @@ package component
 
 import (
 	"log"
+	"path/filepath"
 )
 
 const (
-	MasterSaKey     = "sa.key"
-	MasterSaPub     = "sa.pub"
-	MasterFProxyCrt = "front-proxy-ca.crt"
-	MasterFProxyKey = "front-proxy-ca.key"
-	MasterCaKey     = "ca.key"
-	MasterCaCrt     = "ca.crt"
-	Token           = "token.txt"
-	NodePath        = "nodes"
+	MasterSaKey            = "sa.key"
+	MasterSaPub            = "sa.pub"
+	MasterFProxyCrt        = "front-proxy-ca.crt"
+	MasterFProxyKey        = "front-proxy-ca.key"
+	MasterCaKey            = "ca.key"
+	MasterCaCrt            = "ca.crt"
+	Token                  = "token.txt"
+	NodePath               = "nodes"
+	KubeadmConfig          = "kubedm.yml"
+	ConfigurationRemoteDir = "configurations"
+	PkiRemoteDir           = "pki"
+)
+
+var (
+	pkiMasterRemoteDir = filepath.Join(PkiRemoteDir, "master")
 )
 
 // Master implements the ClusterComponent interface
@@ -59,9 +67,10 @@ func (m Master) getFileMappings() [][]string {
 func (m Master) Configure(overwrite bool) error {
 	// remove, create and download new certs
 	files := m.getFileMappings()
-	bucketDir := "pki/master"
-	err := m.DownloadFilesToDirectory(files, m.Master.CertDir, bucketDir, overwrite)
-	if err != nil {
+	if err := m.DownloadFilesToDirectory(files, m.Master.CertDir, pkiMasterRemoteDir, overwrite); err != nil {
+		log.Fatal(err)
+	}
+	if err := m.DownloadFile(filepath.Join(ConfigurationRemoteDir, KubeadmConfig), m.Master.KubeadmConfig, overwrite); err != nil {
 		log.Fatal(err)
 	}
 	return nil
@@ -70,9 +79,10 @@ func (m Master) Configure(overwrite bool) error {
 func (m Master) Init(dir string) error {
 	// remove, create and download new certs
 	files := m.getFileMappings()
-	bucketDir := "pki/master"
-	err := m.UploadFilesFromDirectory(files, dir, bucketDir)
-	if err != nil {
+	if err := m.UploadFilesFromDirectory(files, dir, pkiMasterRemoteDir); err != nil {
+		log.Fatal(err)
+	}
+	if err := m.UploadFile(filepath.Join(ConfigurationBucketDir, KubeadmConfig), filepath.Join(dir, KubeadmConfig)); err != nil {
 		log.Fatal(err)
 	}
 	return nil

@@ -209,21 +209,26 @@ func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, f
 	for _, fileSrcDst := range files {
 		local, remote := fileSrcDst[0], fileSrcDst[1]
 		file := filepath.Join(localDir, local)
-		if overwrite {
-			os.Remove(file)
-		} else if _, err := os.Stat(file); !os.IsNotExist(err) {
-			log.Fatal("file %s already exists, use --overwrite=true", file)
-		}
-		newFile, err := os.Create(file)
-		if err != nil {
-			return err
-		}
 		bucketPath := filepath.Join(fromPath, remote)
-		err = store.Download(bucketPath, newFile)
-		if err != nil {
-			log.Println("no %s found in bucket", bucketPath)
-			return err
-		}
+		store.DownloadFile(bucketPath, file, overwrite)
+	}
+	return nil
+}
+
+func (store *Data) DownloadFile(remote string, local string, overwrite bool) error {
+	if overwrite {
+		os.Remove(local)
+	} else if _, err := os.Stat(local); !os.IsNotExist(err) {
+		log.Fatal("file %s already exists, use --overwrite=true", local)
+	}
+	newFile, err := os.Create(local)
+	if err != nil {
+		return err
+	}
+	err = store.Download(remote, newFile)
+	if err != nil {
+		log.Println("no %s found remotely", remote)
+		return err
 	}
 	return nil
 }
