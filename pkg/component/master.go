@@ -15,9 +15,7 @@
 package component
 
 import (
-	"bytes"
 	"log"
-	"os/exec"
 )
 
 const (
@@ -64,22 +62,6 @@ func (m Master) Configure(overwrite bool) error {
 	bucketDir := "pki/master"
 	err := m.DownloadFilesToDirectory(files, m.Master.CertDir, bucketDir, overwrite)
 	if err != nil {
-		log.Fatal(err)
-	}
-	initCmd := exec.Command("kubeadm", "init", "--config=", m.Master.KubeadmConfig)
-	if err = initCmd.Run(); err != nil {
-		log.Fatal(err)
-	}
-	tokenCmd := exec.Command("kubeadm", "token", "create", "--print-join-command", "--ttl=0")
-	joinCommand := &bytes.Buffer{}
-	tokenCmd.Stdout = joinCommand
-	if err = tokenCmd.Run(); err != nil {
-		log.Fatal(err)
-	}
-	log.Println("use %s to join the cluster", string(joinCommand.Bytes()))
-	if err = m.UploadFilesFromMemory(map[string][]byte{
-		Token: joinCommand.Bytes(),
-	}, NodePath); err != nil {
 		log.Fatal(err)
 	}
 	return nil

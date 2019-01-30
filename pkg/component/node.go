@@ -15,6 +15,7 @@
 package component
 
 import (
+	"bytes"
 	"log"
 	"os/exec"
 )
@@ -48,5 +49,21 @@ func (n *Node) Configure(overwrite bool) error {
 }
 
 func (n *Node) Init(dir string) error {
+	initCmd := exec.Command("kubeadm", "init", "--config=", n.Master.KubeadmConfig)
+	if err := initCmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+	tokenCmd := exec.Command("kubeadm", "token", "create", "--print-join-command", "--ttl=0")
+	joinCommand := &bytes.Buffer{}
+	tokenCmd.Stdout = joinCommand
+	if err := tokenCmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("use %s to join the cluster", string(joinCommand.Bytes()))
+	if err := n.UploadFilesFromMemory(map[string][]byte{
+		Token: joinCommand.Bytes(),
+	}, NodePath); err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }
