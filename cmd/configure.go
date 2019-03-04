@@ -44,9 +44,24 @@ var masterConfigCmd = &cobra.Command{
 	},
 }
 
+// openVPNConfigureCmd represents the `furyagent configure openvpn` command
+var openVPNConfigCmd = &cobra.Command{
+	Use:   "openvpn",
+	Short: "Get OpenVPN certificates from s3",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		var openvpn component.ClusterComponent = component.OpenVPN{data}
+		err := openvpn.Configure(overwrite)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configureCmd)
 	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite config files (default is `false`)")
 	configureCmd.AddCommand(etcdConfigCmd)
 	configureCmd.AddCommand(masterConfigCmd)
+	configureCmd.AddCommand(openVPNConfigCmd)
 }
