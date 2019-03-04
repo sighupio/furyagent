@@ -29,7 +29,7 @@ func (o OpenVPN) Restore() error {
 func (o OpenVPN) getFileMappings() [][]string {
 	return [][]string{
 		[]string{OpenVPNServerKey, OpenVPNServerKey},
-		[]string{OpenVPNServerKey, OpenVPNServerKey},
+		[]string{OpenVPNServerCert, OpenVPNServerCert},
 		[]string{OpenVPNCaKey, OpenVPNCaKey},
 		[]string{OpenVPNCaCert, OpenVPNCaCert},
 	}
