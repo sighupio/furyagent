@@ -212,7 +212,7 @@ func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, f
 		if overwrite {
 			os.Remove(file)
 		} else if _, err := os.Stat(file); !os.IsNotExist(err) {
-			log.Fatal("file %s already exists, use --overwrite=true", file)
+			log.Fatalf("file %s already exists, use --overwrite=true", file)
 		}
 		newFile, err := os.Create(file)
 		if err != nil {

@@ -12,6 +12,3 @@ test-furyagent:
 
 vendor:
 	go mod vendor
-
-install_deps:
-	go get github.com/mitchellh/gox

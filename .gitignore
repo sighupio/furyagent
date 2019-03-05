@@ -10,3 +10,5 @@ certs
 *.tfstate.backup
 *.retry
 furyagent.yml
+users
+pki

@@ -16,9 +16,10 @@ package component
 
 import (
 	"crypto/x509"
+	"net"
+
 	"git.incubator.sh/sighup/furyagent/pkg/storage"
 	certutil "k8s.io/client-go/util/cert"
-	"net"
 )
 
 var (
@@ -45,11 +46,12 @@ type ClusterComponent interface {
 
 // ClusterConfig represents the configuration for the whole cluster
 type ClusterConfig struct {
-	NodeName string        `mapstructure:"nodeName"`
-	Etcd     EtcdConfig    `mapstructure:"etcd"`
-	Master   MasterConfig  `mapstructure:"master"`
-	Node     NodeConfig    `mapstructure:"node"`
-	OpenVPN  OpenVPNConfig `mapstructure:"openvpn"`
+	NodeName      string              `mapstructure:"nodeName"`
+	Etcd          EtcdConfig          `mapstructure:"etcd"`
+	Master        MasterConfig        `mapstructure:"master"`
+	Node          NodeConfig          `mapstructure:"node"`
+	OpenVPN       OpenVPNConfig       `mapstructure:"openvpn"`
+	OpenVPNClient OpenVPNClientConfig `mapstructure:"openvpn-client"`
 }
 
 // EtcdConfig is used to backup/restore/configure etcd nodes
@@ -91,4 +93,9 @@ type BackupConfig struct {
 
 type OpenVPNConfig struct {
 	CertDir string `mapstructure:"certDir"`
+}
+
+type OpenVPNClientConfig struct {
+	TargetDir string   `mapstructure:"targetDir"`
+	Users     []string `mapstructure:"users"`
 }
