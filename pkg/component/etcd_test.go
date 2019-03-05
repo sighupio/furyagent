@@ -1,9 +1,5 @@
 package component
 
-import (
-	"cmd"
-)
-
 func TestTimeConsuming(t *testing.T) {
 	agentConfig, _ := InitAgent("furyagent.yml")
 	store, _ := storage.Init(&agentConfig.Storage)

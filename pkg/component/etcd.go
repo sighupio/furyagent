@@ -93,7 +93,7 @@ func (e Etcd) Restore() error {
 	bucketPath := getBucketPathEtcd(e.ClusterConfig)
 	err = e.Download(bucketPath, f)
 	if err != nil {
-		log.Println("no %s found in bucket", bucketPath)
+		log.Printf("no %s found in bucket\n", bucketPath)
 		return err
 	}
 	// removing bkups

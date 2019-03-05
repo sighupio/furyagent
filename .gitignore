@@ -9,3 +9,4 @@ certs
 *.tfstate
 *.tfstate.backup
 *.retry
+furyagent.yml

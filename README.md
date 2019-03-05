@@ -1,7 +1,7 @@
 # Furyagent
 
 ## Install
-Get the right binary for you in the [latest release](https://git.incubator.sh/sighup/furyagent/tags)
+Get the right binary for you in the [latest release](https://github.com/sighup-io/furyagent/tags)
 
 ## Usage
 
