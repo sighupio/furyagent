@@ -25,7 +25,7 @@ clusterComponent:
     caCertFilename: ca.pem
     caKeyFilename: caKey.pem
     saPubFilename: sa.pub
-    saKeyFilename: ca.key
+    saKeyFilename: sa.key
     proxyCaCertFilename: front-proxy-ca.crt
     proxyKeyCertFilename: front-proxy-ca.key
     #etcdServers:
