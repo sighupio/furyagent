@@ -14,6 +14,13 @@
 
 package component
 
+import (
+	"log"
+
+	certutil "k8s.io/client-go/util/cert"
+	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
+)
+
 const (
 	MasterSaKey     = "sa.key"
 	MasterSaPub     = "sa.pub"
@@ -59,7 +66,26 @@ func (m Master) Configure(overwrite bool) error {
 
 func (m Master) Init(dir string) error {
 	// remove, create and download new certs
-	files := m.getFileMappings()
-	bucketDir := "pki/master"
-	return m.UploadFilesFromDirectory(files, dir, bucketDir)
+	caCert, caKey, err := pki.NewCertificateAuthority(&CertConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	saCert, saKey, err := pki.NewCertificateAuthority(&CertConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fpCert, fpKey, err := pki.NewCertificateAuthority(&CertConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	certs := map[string][]byte{
+		MasterCaCrt:     certutil.EncodeCertPEM(caCert),
+		MasterCaKey:     certutil.EncodePrivateKeyPEM(caKey),
+		MasterSaPub:     certutil.EncodeCertPEM(saCert),
+		MasterSaKey:     certutil.EncodePrivateKeyPEM(saKey),
+		MasterFProxyCrt: certutil.EncodeCertPEM(fpCert),
+		MasterFProxyKey: certutil.EncodePrivateKeyPEM(fpKey),
+	}
+	log.Printf("files = %v to = %s ", certs, dir)
+	return m.UploadFilesFromMemory(certs, dir)
 }
