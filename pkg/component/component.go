@@ -24,7 +24,7 @@ import (
 
 var (
 	CertConfig = certutil.Config{
-		CommonName:   "SIGHUP s.r.l. OpenVPN Server",
+		CommonName:   "SIGHUP s.r.l. Server",
 		Organization: []string{"SIGHUP s.r.l."},
 		AltNames:     certutil.AltNames{DNSNames: []string{}, IPs: []net.IP{}},
 		Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},

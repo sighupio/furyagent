@@ -1,6 +1,7 @@
 # Furyagent
 
 ## Install
+
 Get the right binary for you in the [latest release](https://github.com/sighup-io/furyagent/tags)
 
 ## Usage
@@ -35,6 +36,7 @@ furyagent
 ```
 
 ## Workflow
+
 1. Write a [`furyagent.yml`](furyagent.yml)
 2. Generate certificates (by hand at the moment)
 3. `furyagent init -d /path/to/cert/dir --config /path/to/furyagent.yml [etcd|master]` to upload certificates
@@ -42,11 +44,12 @@ furyagent
 5. if needed: to backup the state of etcd through `furyagent backup --config /path/to/furyagent.yml etcd`
 6. if needed: to restore the state of etcd, stop etcd, run `furyagent restore --config /path/to/furyagent.yml etcd`, restart etcd
 
-
 ## Contributing
+
 We still use `go mod` as golang package manager. Once you have that installed you can run `go mod vendor` and `go build` or `go install` should run without problems
 
 # Storage
+
 There is going to be one and only one bucket per cluster.
 
 ```
@@ -103,4 +106,3 @@ S3 bucket
 ```
 
 For ARK volume backup using restic backup is necessary a different bucket then this one.
-

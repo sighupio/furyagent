@@ -17,16 +17,17 @@ package component
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.etcd.io/etcd/pkg/transport"
 	"go.uber.org/zap"
 	certutil "k8s.io/client-go/util/cert"
 	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
-	"log"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 const (
@@ -144,6 +145,6 @@ func (e Etcd) Init(dir string) error {
 		EtcdCaCrt: certutil.EncodeCertPEM(ca),
 		EtcdCaKey: certutil.EncodePrivateKeyPEM(privateKey),
 	}
-	log.Printf("files = %v to = %s ", certs, dir)
+	log.Printf("Writing files to: %s ", etcdPath)
 	return e.UploadFilesFromMemory(certs, etcdPath)
 }
