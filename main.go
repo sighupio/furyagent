@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/sighup-io/cmd"
+	"github.com/sighup-io/furyagent/cmd"
 	"log"
 )
 

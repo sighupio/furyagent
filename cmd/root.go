@@ -17,8 +17,8 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sighup-io/pkg/component"
-	"github.com/sighup-io/pkg/storage"
+	"github.com/sighup-io/furyagent/pkg/component"
+	"github.com/sighup-io/furyagent/pkg/storage"
 	"github.com/spf13/cobra"
 	"log"
 	"os"

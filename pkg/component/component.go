@@ -18,7 +18,7 @@ import (
 	"crypto/x509"
 	"net"
 
-	"github.com/sighup-io/pkg/storage"
+	"github.com/sighup-io/furyagent/pkg/storage"
 	certutil "k8s.io/client-go/util/cert"
 )
 
