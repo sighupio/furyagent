@@ -145,6 +145,6 @@ func (e Etcd) Init(dir string) error {
 		EtcdCaCrt: certutil.EncodeCertPEM(ca),
 		EtcdCaKey: certutil.EncodePrivateKeyPEM(privateKey),
 	}
-	log.Printf("files = %v to = %s ", certs, etcdPath)
+	log.Printf("Writing files to: %s ", etcdPath)
 	return e.UploadFilesFromMemory(certs, etcdPath)
 }
