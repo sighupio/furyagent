@@ -15,7 +15,7 @@
 package main
 
 import (
-	"git.incubator.sh/sighup/furyagent/cmd"
+	"github.com/sighup-io/cmd"
 	"log"
 )
 
