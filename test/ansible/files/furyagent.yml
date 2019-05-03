@@ -1,6 +1,6 @@
 storage:
   provider: local
-  path: "."
+  path: "pki"
   #provider: s3 # accepted values are "s3" or "local"
   #url: "http://minio:9000"
   #AccessKey: "minio"

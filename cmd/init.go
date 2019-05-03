@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"log"
+
 	"git.incubator.sh/sighup/furyagent/pkg/component"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 var initCmd = &cobra.Command{

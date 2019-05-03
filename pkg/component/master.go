@@ -28,6 +28,7 @@ const (
 	MasterFProxyKey = "front-proxy-ca.key"
 	MasterCaKey     = "ca.key"
 	MasterCaCrt     = "ca.crt"
+	masterPath      = "pki/master"
 )
 
 // Master implements the ClusterComponent interface
@@ -86,6 +87,6 @@ func (m Master) Init(dir string) error {
 		MasterFProxyCrt: certutil.EncodeCertPEM(fpCert),
 		MasterFProxyKey: certutil.EncodePrivateKeyPEM(fpKey),
 	}
-	log.Printf("files = %v to = %s ", certs, dir)
-	return m.UploadFilesFromMemory(certs, dir)
+	log.Printf("files = %v to = %s ", certs, masterPath)
+	return m.UploadFilesFromMemory(certs, masterPath)
 }
