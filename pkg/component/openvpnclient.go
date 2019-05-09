@@ -41,12 +41,15 @@ func (o OpenVPNClient) getFileMappings() [][]string {
 
 func (o OpenVPNClient) Configure(overwrite bool) error {
 	files := o.getFileMappings()
+	if len(o.OpenVPNClient.Users) == 0 {
+		log.Fatalf("No users defined in furyagent config file passed (clusterComponent.openvpn-client.users)")
+	}
 	for _, v := range o.OpenVPNClient.Users {
 		path := filepath.Join(o.OpenVPNClient.TargetDir, v)
 
 		log.Println("Creating directory for: ", v)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			e := os.Mkdir(path, 0755)
+			e := os.MkdirAll(path, 0755)
 			if e != nil {
 				return e
 			}
