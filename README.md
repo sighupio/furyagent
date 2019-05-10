@@ -1,8 +1,18 @@
 # Furyagent
 
 ## Install
+You can find `furyagent` binaries on the [Releases page](https://github.com/sighup-io/furyagent/releases). 
 
-Get the right binary for you in the [latest release](https://github.com/sighup-io/furyagent/tags)
+Supported architectures are (64 bit):
+- `linux`
+- `darwin`
+
+Download right binary for your architecture and add it to your PATH. Assuming it's downloaded in your
+`~/Downloads` folder, you can run following commands (replacing `{arch}` with your architecture):
+
+```
+chmod +x  ~/Downloads/furyagent-{arch}-amd64 && mv ~/Downloads/furyagent-{arch}-amd64 /usr/local/bin/furyagent
+```
 
 ## Usage
 
