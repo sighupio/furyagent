@@ -82,7 +82,6 @@ func Init(cfg *Config) (*Data, error) {
 		config = stow.ConfigMap{
 			local.ConfigKeyPath: cfg.LocalPath,
 		}
-		log.Printf("Will save to local directory: %s", cfg.LocalPath)
 		s.containerName = cfg.LocalPath
 	default:
 		return nil, fmt.Errorf("provider \"%s\" not supported", cfg.Provider)

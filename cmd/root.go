@@ -15,13 +15,16 @@
 package cmd
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+
 	"github.com/sighup-io/furyagent/pkg/component"
 	"github.com/sighup-io/furyagent/pkg/storage"
 	"github.com/spf13/cobra"
-	"log"
-	"os"
 )
 
 var cfgFile string
@@ -76,7 +79,9 @@ var versionCmd = &cobra.Command{
 	Short: "Prints the client version information",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Furyagent version ", FuryctlVersion)
+		filename, _ := os.Executable()
+		data, _ := ioutil.ReadFile(filename)
+		fmt.Printf("Furyagent version %v - md5: %x - %s \n", FuryctlVersion, md5.Sum(data), filename)
 	},
 }
 
