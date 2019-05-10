@@ -81,7 +81,7 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		filename, _ := os.Executable()
 		data, _ := ioutil.ReadFile(filename)
-		fmt.Printf("Furyagent version %v - md5: %x - %s \n", FuryctlVersion, md5.Sum(data), filename)
+		fmt.Printf("Furyagent version %v - md5: %x - %s \n", FuryagentVersion, md5.Sum(data), filename)
 	},
 }
 
