@@ -15,8 +15,9 @@
 package main
 
 import (
-	"github.com/sighup-io/furyagent/cmd"
 	"log"
+
+	"github.com/sighup-io/furyagent/cmd"
 )
 
 func main() {

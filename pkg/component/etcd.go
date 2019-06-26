@@ -79,7 +79,7 @@ func (e Etcd) Backup() error {
 	if err != nil {
 		return err
 	}
-	e.UploadFile(getBucketPathEtcd(e.ClusterConfig), e.Etcd.SnapshotFile)
+	e.UploadFile(getBucketPathEtcd(e.ClusterConfig), e.Etcd.SnapshotFile+fmt.Sprintf("%v", time.Now().Unix()))
 	return err
 }
 
