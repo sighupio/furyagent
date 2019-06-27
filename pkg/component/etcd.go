@@ -79,7 +79,7 @@ func (e Etcd) Backup() error {
 	if err != nil {
 		return err
 	}
-	e.UploadFile(getBucketPathEtcd(e.ClusterConfig), e.Etcd.SnapshotFile+fmt.Sprintf("%v", time.Now().Unix()))
+	e.UploadFile(getBucketPathEtcd(e.ClusterConfig), e.Etcd.SnapshotFile, true)
 	return err
 }
 
@@ -146,5 +146,5 @@ func (e Etcd) Init(dir string) error {
 		EtcdCaKey: certutil.EncodePrivateKeyPEM(privateKey),
 	}
 	log.Printf("Writing files to: %s ", etcdPath)
-	return e.UploadFilesFromMemory(certs, etcdPath)
+	return e.UploadFilesFromMemory(certs, etcdPath, false)
 }

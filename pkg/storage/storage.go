@@ -148,10 +148,10 @@ func (s *Data) Download(filename string, obj io.WriteCloser) error {
 }
 
 // Upload is the single interface to upload something to Object Storage
-func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
+func (s *Data) Upload(filename string, size int64, obj io.ReadCloser, overwrite bool) error {
 	//upload snapshot to container with given name
 	defer obj.Close()
-	if _, err := s.container.Item(filename); err == nil {
+	if _, err := s.container.Item(filename); !overwrite && err == nil {
 		log.Fatalf("%s exists already", filename)
 	}
 	item, err := s.container.Put(filename, obj, size, nil)
@@ -165,7 +165,7 @@ func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 	return nil
 }
 
-func (s *Data) UploadFile(filename, localPath string) error {
+func (s *Data) UploadFile(filename, localPath string, overwrite bool) error {
 	log.Printf("uploading %s to %s", localPath, filename)
 	fileSize, err := FileSize(localPath)
 	if err != nil {
@@ -175,14 +175,14 @@ func (s *Data) UploadFile(filename, localPath string) error {
 	if err != nil {
 		return err
 	}
-	return s.Upload(filename, fileSize, r)
+	return s.Upload(filename, fileSize, r, overwrite)
 }
 
-func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, toPath string) error {
+func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, toPath string, overwrite bool) error {
 	for _, fileSrcDest := range files {
 		local, remote := filepath.Join(localDir, fileSrcDest[0]), filepath.Join(toPath, fileSrcDest[1])
 		log.Printf("trying to upload %s to %s", local, remote)
-		err := store.UploadFile(remote, local)
+		err := store.UploadFile(remote, local, overwrite)
 		if err != nil {
 			return err
 		}
@@ -190,10 +190,10 @@ func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, t
 	return nil
 }
 
-func (store *Data) UploadFilesFromMemory(files map[string][]byte, dir string) error {
+func (store *Data) UploadFilesFromMemory(files map[string][]byte, dir string, overwrite bool) error {
 	for filename, file := range files {
 		path := filepath.Join(dir, filename)
-		if _, err := store.container.Item(path); err == nil {
+		if _, err := store.container.Item(path); !overwrite && err == nil {
 			log.Fatalf("%s exists already", path)
 		}
 		if _, err := store.container.Put(path, ioutil.NopCloser(bytes.NewReader(file)), int64(len(file)), nil); err != nil {

@@ -88,5 +88,5 @@ func (m Master) Init(dir string) error {
 		MasterFProxyKey: certutil.EncodePrivateKeyPEM(fpKey),
 	}
 	log.Printf("Writing files to %s ", masterPath)
-	return m.UploadFilesFromMemory(certs, masterPath)
+	return m.UploadFilesFromMemory(certs, masterPath, false)
 }

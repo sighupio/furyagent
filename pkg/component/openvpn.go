@@ -69,7 +69,7 @@ func (o OpenVPN) Init(dir string) error {
 		OpenVPNServerKey:  certutil.EncodePrivateKeyPEM(serverKey),
 		OpenVPNTaKey:      taKeyData,
 	}
-	if err = o.UploadFilesFromMemory(certs, OpenVPNPath); err != nil {
+	if err = o.UploadFilesFromMemory(certs, OpenVPNPath, false); err != nil {
 		log.Fatal(err)
 	}
 	return nil
