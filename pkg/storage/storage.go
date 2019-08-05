@@ -24,9 +24,9 @@ import (
 	"path/filepath"
 
 	"github.com/graymeta/stow"
+	"github.com/graymeta/stow/azure"
 	"github.com/graymeta/stow/local"
 	"github.com/graymeta/stow/s3"
-	//  "github.com/graymeta/stow/azure"
 	//  "github.com/graymeta/stow/google"
 	// "github.com/graymeta/stow/swift"
 )
@@ -60,16 +60,17 @@ func Init(cfg *Config) (*Data, error) {
 				s3.ConfigRegion:      cfg.Region,
 			}
 		}
+	case "azure":
+		s.containerName = cfg.BucketName
+		config = stow.ConfigMap{
+			azure.ConfigAccount: cfg.AzureStorageAccount,
+			azure.ConfigKey:     cfg.AzureStorageKey,
+		}
 	// case "google":
 	// 	config = stow.ConfigMap{
 	// 		google.ConfigJSON:      os.Getenv("GOOGLE_CLOUD_KEYFILE_JSON"),
 	// 		google.ConfigProjectId: os.Getenv("GOOGLE_PROJECT"),
 	// 		google.ConfigScopes:    "read-write",
-	// 	}
-	// case "azure":
-	// 	config = stow.ConfigMap{
-	// 		azure.ConfigAccount: os.Getenv("AZURE_CONFIG_ID"),
-	// 		azure.ConfigKey:     os.Getenv("AZURE_CONFIG_KEY"),
 	// 	}
 	// case "swift":
 	// 	config = stow.ConfigMap{
