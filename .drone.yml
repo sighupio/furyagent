@@ -13,12 +13,12 @@ steps:
       event:
         - push
         - tag
-      
+
   - name: build-linux-push
     group: build
     image: golang
     pull: always
-    depends_on: 
+    depends_on:
       - lint
     environment:
       GOOS: linux
@@ -35,66 +35,25 @@ steps:
     group: build
     image: golang
     pull: always
-    depends_on: 
+    depends_on:
       - lint
     environment:
       GOOS: darwin
-      GOARCH: amd64
-      CGO_ENABLED: 0    
-    commands:
-      - go mod vendor
-      - go build 
-    when:
-      event:
-        - push
-
-  - name: build-linux
-    group: build-to-release
-    image: golang
-    pull: always
-    depends_on: 
-      - lint
-    environment:
-      GOOS: linux
       GOARCH: amd64
       CGO_ENABLED: 0
     commands:
       - go mod vendor
-      - go build -a -ldflags '-extldflags "-static"' -o bin/releases/furyagent-linux-amd64  .
+      - go build
     when:
       event:
-        - tag
+        - push
 
-  - name: build-darwin
-    group: build-to-release
+  - name: build-release-homebrew
     image: golang
     pull: always
-    depends_on: 
-      - lint
-    environment:
-      GOOS: darwin
-      GOARCH: amd64
-      CGO_ENABLED: 0    
+    secrets:
+      - GITHUB_TOKEN
     commands:
-      - go mod vendor
-      - go build -a -ldflags '-extldflags "-static"' -o bin/releases/furyagent-darwin-amd64 .
-    when:
-      event:
-        - tag
-
-  - name: release
-    image: plugins/github-release
-    pull: always
-    environment:
-    depends_on: 
-      - build-linux
-      - build-darwin
-    settings:
-      api_key: 
-        from_secret: GITHUB_TOKEN 
-      files:
-        - bin/releases/*
-      checksum:
-         - sha256
+      - curl -sL https://git.io/goreleaser | bash
     when:
       event: tag
