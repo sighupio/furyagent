@@ -102,6 +102,7 @@ type OpenVPNClientConfig struct {
 }
 
 type SSHConfig struct {
-	UserDir string `mapstructure:"userDir"`
-	TempDir string `mapstructure:"tempDir"`
+	UserDir              string `mapstructure:"userDir"`
+	TempDir              string `mapstructure:"tempDir"`
+	DefaultSShPubKeyFile string `mapstructure:"defaultSshKeyFile"`
 }

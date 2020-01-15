@@ -3,6 +3,7 @@ package component
 import (
 	"bufio"
 	"bytes"
+	ioutil "io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 const (
 	SSHFileName                   = "ssh-users"
 	SSHBucketDir                  = "ssh"
+	SSHLocalDir                   = "secrets/ssh"
 	SSHAuthorizedKeysFileName     = "authorized_keys"
 	SSHAuthorizedKeysTempFileName = "authorized_keys_tmp"
 )
@@ -32,6 +34,12 @@ func (o SSH) Restore() error {
 }
 
 func (o SSH) getFile() [][]string {
+	if o.SSH.DefaultSShPubKeyFile != "" {
+		return [][]string{
+			[]string{SSHFileName, SSHFileName},
+			[]string{o.SSH.DefaultSShPubKeyFile, o.SSH.DefaultSShPubKeyFile},
+		}
+	}
 	return [][]string{
 		[]string{SSHFileName, SSHFileName},
 	}
@@ -44,7 +52,7 @@ func (o SSH) Configure(overwrite bool) error {
 	files := o.getFile()
 	err := o.DownloadFilesToDirectory(files, o.SSH.TempDir, SSHBucketDir, overwrite)
 	if err != nil {
-		log.Fatal("error downloading file ", err)
+		log.Fatal("error downloading files ", err)
 	}
 
 	file, err := os.Open(path.Join(o.SSH.TempDir, SSHFileName))
@@ -52,6 +60,8 @@ func (o SSH) Configure(overwrite bool) error {
 		log.Fatal("no file found to open in "+path.Join(o.SSH.TempDir, SSHFileName), err)
 	}
 	defer file.Close()
+
+	// parse the ssh-user file
 	scanner := bufio.NewScanner(file)
 
 	authorizedKeys := bytes.Buffer{}
@@ -73,14 +83,25 @@ func (o SSH) Configure(overwrite bool) error {
 		} else {
 			log.Println("user " + scanner.Text() + " not found!")
 			authorizedKeys.WriteString("#### " + scanner.Text() + "\n")
-			authorizedKeys.WriteString("#### no keys for " + scanner.Text())
+			authorizedKeys.WriteString("#### no keys for " + scanner.Text() + "\n")
 			errorFound = true
 		}
 	}
+	if o.SSH.DefaultSShPubKeyFile != "" {
+		//write the default_ssh_key in the buffer too
+		fileContent, err := ioutil.ReadFile(string(path.Join(o.SSH.TempDir, o.SSH.DefaultSShPubKeyFile)))
+		if err != nil {
+			log.Fatal(err)
+		}
+		authorizedKeys.WriteString("#### default_ssh pub_key\n")
+		authorizedKeys.WriteString(string(fileContent))
+	}
+
 	f, err := os.Create(path.Join(o.SSH.UserDir, SSHAuthorizedKeysTempFileName))
 	if err != nil {
 		return err
 	}
+	//write the buffer into the temporary authorized_keys file
 	_, err = f.Write([]byte(authorizedKeys.String()))
 	if err != nil {
 		return err
@@ -99,6 +120,8 @@ func (o SSH) Configure(overwrite bool) error {
 }
 
 //Init will upload to the configured bucket the ssh file users
+
 func (o SSH) Init(dir string) error {
-	return o.UploadFile(path.Join(SSHBucketDir, SSHFileName), path.Join(SSHBucketDir, SSHFileName))
+	files := o.getFile()
+	return o.UploadFilesFromDirectory(files, SSHLocalDir, SSHBucketDir)
 }
