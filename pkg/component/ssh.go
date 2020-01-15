@@ -93,5 +93,5 @@ func (o SSH) Configure(overwrite bool) error {
 
 //Init will upload to the configured bucket the ssh file users
 func (o SSH) Init(dir string) error {
-	return o.UploadFile(path.Join(SSHFilePath, SSHFileName), SSHFilePath)
+	return o.UploadFile(path.Join(SSHFilePath, SSHFileName), path.Join(SSHFilePath, SSHFileName))
 }
