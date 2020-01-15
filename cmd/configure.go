@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/sighup-io/furyagent/pkg/component"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 // backupCmd represents the `furyctl backup` command
@@ -72,6 +73,19 @@ var openVPNClientConfigCmd = &cobra.Command{
 	},
 }
 
+var SSHKeysConfigCmd = &cobra.Command{
+	Use:   "ssh-keys",
+	Short: "Setup ssh keys from s3",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		var ssh component.ClusterComponent = component.SSH{data}
+		err := ssh.Configure(overwrite)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configureCmd)
 	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite config files (default is `false`)")
@@ -79,4 +93,5 @@ func init() {
 	configureCmd.AddCommand(masterConfigCmd)
 	configureCmd.AddCommand(openVPNConfigCmd)
 	configureCmd.AddCommand(openVPNClientConfigCmd)
+	configureCmd.AddCommand(SSHKeysConfigCmd)
 }

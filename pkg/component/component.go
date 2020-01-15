@@ -36,7 +36,7 @@ type ClusterComponentData struct {
 	*storage.Data
 }
 
-// ClusterComponent interface represent the basic concept of the componet: etcd, master, node
+// ClusterComponent interface represent the basic concept of the component: etcd, master, node
 type ClusterComponent interface {
 	Backup() error
 	Restore() error
@@ -52,6 +52,7 @@ type ClusterConfig struct {
 	Node          NodeConfig          `mapstructure:"node"`
 	OpenVPN       OpenVPNConfig       `mapstructure:"openvpn"`
 	OpenVPNClient OpenVPNClientConfig `mapstructure:"openvpn-client"`
+	SSH           SSHConfig           `mapstructure:"sshkeys"`
 }
 
 // EtcdConfig is used to backup/restore/configure etcd nodes
@@ -98,4 +99,8 @@ type OpenVPNConfig struct {
 type OpenVPNClientConfig struct {
 	TargetDir string   `mapstructure:"targetDir"`
 	Users     []string `mapstructure:"users"`
+}
+
+type SSHConfig struct {
+	SSHDir string `mapstructure:"certDir"`
 }
