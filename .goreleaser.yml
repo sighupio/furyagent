@@ -1,0 +1,62 @@
+---
+before:
+  hooks:
+    - go mod vendor
+project_name: furyagent
+builds:
+  - binary: 'furyagent-darwin-amd64'
+    id: furyagent-darwin
+    goarch:
+      - amd64
+    goos:
+      - darwin
+    env:
+      - CGO_ENABLED=0
+  - binary: 'furyagent-linux-amd64'
+    id: furyagent-linux
+    goarch:
+      - amd64
+    goos:
+      - linux
+    env:
+      - CGO_ENABLED=0
+archives:
+  - format: binary
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+checksum:
+  name_template: 'sha256sum.txt'
+snapshot:
+  name_template: '{{ .Tag }}'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  ids:
+    - furyagent-linux
+    - furyagent-darwin
+  github:
+    owner: sighupio
+    name: furyagent
+  name_template: '{{ .Tag }}'
+brews:
+  - name: furyagent
+    # IDs of the archives to use.
+    # Defaults to all.
+    ids:
+      - furyagent-linux
+      - furyagent-darwin
+    github:
+      owner: sighupio
+      name: homebrew-furyagent
+    url_template: 'https://github.com/sighupio/furyagent/releases/download/v{{ .Tag }}/{{ .ArtifactName }}'
+    folder: Formula
+    description: 'Fury Agent binary'
+    conflicts:
+      - furyagent
+    test: |
+      system "#{bin}/furyctl"
+    install: |
+      bin.install 'furyctl'
