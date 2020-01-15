@@ -201,7 +201,7 @@ func (store *Data) UploadFilesFromMemory(files map[string][]byte, dir string) er
 }
 
 func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, fromPath string, overwrite bool) error {
-	os.MkdirAll(localDir, os.ModeDir)
+	os.MkdirAll(localDir, 0750)
 	for _, fileSrcDst := range files {
 		local, remote := fileSrcDst[0], fileSrcDst[1]
 		file := filepath.Join(localDir, local)
