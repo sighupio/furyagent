@@ -51,6 +51,9 @@ steps:
   - name: build-release-homebrew
     image: golang
     pull: always
+    environment:
+      GITHUB_TOKEN:
+        from_secret: GITHUB_TOKEN
     secrets:
       - GITHUB_TOKEN
     commands:
