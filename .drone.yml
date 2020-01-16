@@ -57,6 +57,6 @@ steps:
     secrets:
       - GITHUB_TOKEN
     commands:
-      - goreleaser --skip-validate
+      - goreleaser --snapshot --rm-dist
     when:
       event: push
