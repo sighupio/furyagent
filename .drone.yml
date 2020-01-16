@@ -49,7 +49,7 @@ steps:
         - push
 
   - name: build-release-homebrew
-    image: golang
+    image: goreleaser/goreleaser:v0.124
     pull: always
     environment:
       GITHUB_TOKEN:
@@ -57,6 +57,6 @@ steps:
     secrets:
       - GITHUB_TOKEN
     commands:
-      - curl -sL https://git.io/goreleaser | bash
+      - --skip-validate
     when:
       event: push
