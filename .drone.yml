@@ -56,4 +56,4 @@ steps:
     commands:
       - curl -sL https://git.io/goreleaser | bash
     when:
-      event: tag
+      event: push
