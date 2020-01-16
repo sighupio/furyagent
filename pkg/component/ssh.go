@@ -1,18 +1,20 @@
 package component
 
 import (
-	"bufio"
 	"bytes"
+	"fmt"
 	ioutil "io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 const (
-	SSHFileName                   = "ssh-users"
+	SSHFileName                   = "ssh-users.yml"
 	SSHBucketDir                  = "ssh"
 	SSHLocalDir                   = "secrets/ssh"
 	SSHAuthorizedKeysFileName     = "authorized_keys"
@@ -21,6 +23,16 @@ const (
 
 type SSH struct {
 	ClusterComponentData
+}
+
+type SSHUsersFile struct {
+	Users []UserSpec `yaml:"users"`
+}
+
+type UserSpec struct {
+	Name             string `yaml:"name"`
+	GithubID         string `yaml:"github_id"`
+	SSHPublicKeyFile string `yaml:"ssh_public_key_file"`
 }
 
 //Backup is a nil function to match the interface
@@ -55,36 +67,30 @@ func (o SSH) Configure(overwrite bool) error {
 		log.Fatal("error downloading files ", err)
 	}
 
-	file, err := os.Open(path.Join(o.SSH.TempDir, SSHFileName))
+	sshYaml := SSHUsersFile{}
+	fileRead, err := ioutil.ReadFile(string(path.Join(o.SSH.TempDir, SSHFileName)))
 	if err != nil {
 		log.Fatal("no file found to open in "+path.Join(o.SSH.TempDir, SSHFileName), err)
 	}
-	defer file.Close()
+	err = yaml.Unmarshal(fileRead, &sshYaml)
+	if err != nil {
+		log.Fatal("unable to unmarshal file "+path.Join(o.SSH.TempDir, SSHFileName), err)
+	}
+	//parse the ssh-user file
 
-	// parse the ssh-user file
-	scanner := bufio.NewScanner(file)
-
-	authorizedKeys := bytes.Buffer{}
+	var errorFound bool
+	authorizedKeys := &bytes.Buffer{}
 	errorFound = false
-	for scanner.Scan() {
-		client := http.Client{
-			Timeout: 5 * time.Second,
+	for _, user := range sshYaml.Users {
+		if user.GithubID != "" {
+			authorizedKeys, err = getPublicKeyFromGithub(user, authorizedKeys)
+			if err != nil {
+				errorFound = true
+			}
 		}
-		resp, err := client.Get("https://github.com/" + scanner.Text() + ".keys")
-		if err != nil {
-			log.Fatal("http protocol error", err)
-		}
-		if resp.StatusCode == 200 {
-			buf := new(bytes.Buffer)
-			buf.ReadFrom(resp.Body)
-			log.Println("writing ssh keys for user " + scanner.Text())
-			authorizedKeys.WriteString("#### " + scanner.Text() + "\n")
-			authorizedKeys.WriteString(buf.String())
-		} else {
-			log.Println("user " + scanner.Text() + " not found!")
-			authorizedKeys.WriteString("#### " + scanner.Text() + "\n")
-			authorizedKeys.WriteString("#### no keys for " + scanner.Text() + "\n")
-			errorFound = true
+		if user.SSHPublicKeyFile != "" {
+			authorizedKeys, err = getPublicKeyFromFile(user, authorizedKeys)
+
 		}
 	}
 	if o.SSH.DefaultSShPubKeyFile != "" {
@@ -124,4 +130,37 @@ func (o SSH) Configure(overwrite bool) error {
 func (o SSH) Init(dir string) error {
 	files := o.getFile()
 	return o.UploadFilesFromDirectory(files, SSHLocalDir, SSHBucketDir)
+}
+
+func getPublicKeyFromGithub(userspec UserSpec, authorizedKeys *bytes.Buffer) (*bytes.Buffer, error) {
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Get("https://github.com/" + userspec.GithubID + ".keys")
+	if err != nil {
+		log.Fatal("http protocol error", err)
+	}
+	if resp.StatusCode == 200 {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		log.Println("writing ssh keys for user " + userspec.Name)
+		authorizedKeys.WriteString("#### " + userspec.GithubID + "\n")
+		authorizedKeys.WriteString(buf.String())
+	} else {
+		log.Println("user " + userspec.GithubID + " not found!")
+		authorizedKeys.WriteString("#### " + userspec.Name + "\n")
+		authorizedKeys.WriteString("#### no keys for " + userspec.GithubID + "\n")
+		return authorizedKeys, fmt.Errorf("error while getting github user")
+	}
+	return authorizedKeys, nil
+}
+
+func getPublicKeyFromFile(userspec UserSpec, authorizedKeys *bytes.Buffer) (*bytes.Buffer, error) {
+	fileContent, err := ioutil.ReadFile(string(userspec.SSHPublicKeyFile))
+	if err != nil {
+		return authorizedKeys, err
+	}
+	authorizedKeys.WriteString("####" + userspec.Name + "\n")
+	authorizedKeys.WriteString(string(fileContent))
+	return authorizedKeys, nil
 }
