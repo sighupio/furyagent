@@ -59,4 +59,4 @@ steps:
     commands:
       - goreleaser
     when:
-      event: push
+      event: tag
