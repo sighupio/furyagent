@@ -66,15 +66,18 @@ func (o SSH) Configure(overwrite bool) error {
 	if err != nil {
 		log.Fatal("error downloading files ", err)
 	}
+	return sshPubKeys(o.SSH)
+}
 
+func sshPubKeys(config SSHConfig) error {
 	sshYaml := SSHUsersFile{}
-	fileRead, err := ioutil.ReadFile(string(path.Join(o.SSH.TempDir, SSHFileName)))
+	fileRead, err := ioutil.ReadFile(string(path.Join(config.TempDir, SSHFileName)))
 	if err != nil {
-		log.Fatal("no file found to open in "+path.Join(o.SSH.TempDir, SSHFileName), err)
+		log.Fatal("no file found to open in "+path.Join(config.TempDir, SSHFileName), err)
 	}
 	err = yaml.Unmarshal(fileRead, &sshYaml)
 	if err != nil {
-		log.Fatal("unable to unmarshal file "+path.Join(o.SSH.TempDir, SSHFileName), err)
+		log.Fatal("unable to unmarshal file "+path.Join(config.TempDir, SSHFileName), err)
 	}
 	//parse the ssh-user file
 
@@ -93,9 +96,9 @@ func (o SSH) Configure(overwrite bool) error {
 
 		}
 	}
-	if o.SSH.DefaultSShPubKeyFile != "" {
+	if config.DefaultSShPubKeyFile != "" {
 		//write the default_ssh_key in the buffer too
-		fileContent, err := ioutil.ReadFile(string(path.Join(o.SSH.TempDir, o.SSH.DefaultSShPubKeyFile)))
+		fileContent, err := ioutil.ReadFile(string(path.Join(config.TempDir, config.DefaultSShPubKeyFile)))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -103,7 +106,7 @@ func (o SSH) Configure(overwrite bool) error {
 		authorizedKeys.WriteString(string(fileContent))
 	}
 
-	f, err := os.Create(path.Join(o.SSH.UserDir, SSHAuthorizedKeysTempFileName))
+	f, err := os.Create(path.Join(config.UserDir, SSHAuthorizedKeysTempFileName))
 	if err != nil {
 		return err
 	}
@@ -118,7 +121,7 @@ func (o SSH) Configure(overwrite bool) error {
 		log.Fatal("conservative behaviour: error found, skipping the authorized_keys update")
 	}
 
-	err = os.Rename(path.Join(o.SSH.UserDir, SSHAuthorizedKeysTempFileName), path.Join(o.SSH.UserDir, SSHAuthorizedKeysFileName))
+	err = os.Rename(path.Join(config.UserDir, SSHAuthorizedKeysTempFileName), path.Join(config.UserDir, SSHAuthorizedKeysFileName))
 	if err != nil {
 		log.Fatal("error while moving file to authorized_keys: ", err)
 	}

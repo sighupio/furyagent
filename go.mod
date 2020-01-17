@@ -6,7 +6,8 @@ require (
 	github.com/Azure/go-autorest v11.2.3+incompatible // indirect
 	github.com/alecthomas/gometalinter v2.0.12+incompatible // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
-	github.com/aws/aws-sdk-go v1.16.26 // indirect
+	github.com/araddon/gou v0.0.0-20190110011759-c797efecbb61 // indirect
+	github.com/aws/aws-sdk-go v1.16.26
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea // indirect
@@ -32,6 +33,7 @@ require (
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/klauspost/asmfmt v1.2.0 // indirect
 	github.com/koron/iferr v0.0.0-20180615142939-bb332a3b1d91 // indirect
+	github.com/lytics/cloudstorage v0.2.2
 	github.com/marstr/guid v1.1.0 // indirect
 	github.com/mdempsky/gocode v0.0.0-20181226182234-be056ad32a5e // indirect
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
@@ -41,6 +43,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/ncw/swift v1.0.42 // indirect
 	github.com/nicksnyder/go-i18n v1.10.0 // indirect
+	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c // indirect
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
