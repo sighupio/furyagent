@@ -50,7 +50,7 @@ release:
   github:
     owner: sighupio
     name: furyagent
-  name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+  name_template: '{{ .ArtifactName }}'
 brews:
   - name: furyagent
     # IDs of the archives to use.
