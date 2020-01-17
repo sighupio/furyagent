@@ -60,12 +60,12 @@ brews:
     github:
       owner: sighupio
       name: homebrew-furyagent
-    url_template: 'https://github.com/sighupio/furyagent/releases/download/v{{ .Tag }}/{{ .ArtifactName }}.zip'
+    url_template: 'https://github.com/sighupio/furyagent/releases/download/v{{ .Tag }}/{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
     folder: Formula
     description: 'Fury Agent binary'
     conflicts:
       - furyagent
     test: |
-      system "#{bin}/furyctl"
+      system "#{bin}/furyagent"
     install: |
-      bin.install 'furyctl'
+      bin.install 'furyagent'
