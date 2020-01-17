@@ -60,5 +60,4 @@ steps:
       - goreleaser --debug
     when:
       event:
-        - push
         - tag
