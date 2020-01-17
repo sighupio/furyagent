@@ -2,8 +2,17 @@
 kind: pipeline
 name: test
 
-steps:
-  - name: lint
+workspace:
+  base: /go
+  path: github.com/sighupio/furyagent
+
+pipeline:
+  fetch:
+    image: docker:git
+    commands:
+      - git fetch --tags
+
+  lint:
     image: golang
     pull: always
     commands:
@@ -14,12 +23,9 @@ steps:
         - push
         - tag
 
-  - name: build-linux-push
-    group: build
+  build-linux-push:
     image: golang
     pull: always
-    depends_on:
-      - lint
     environment:
       GOOS: linux
       GOARCH: amd64
@@ -31,12 +37,10 @@ steps:
       event:
         - push
 
-  - name: build-darwin-push
+  build-darwin-push:
     group: build
     image: golang
     pull: always
-    depends_on:
-      - lint
     environment:
       GOOS: darwin
       GOARCH: amd64
@@ -48,7 +52,7 @@ steps:
       event:
         - push
 
-  - name: build-release-homebrew
+  build-release:
     image: goreleaser/goreleaser:v0.124
     pull: always
     environment:
