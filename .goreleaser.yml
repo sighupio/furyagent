@@ -22,7 +22,17 @@ builds:
       - CGO_ENABLED=0
 archives:
   - format: binary
+    id: furyagent-darwin
+    wrap_in_directory: false
     name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-darwin
+  - format: binary
+    id: furyagent-linux
+    wrap_in_directory: false
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-linux
 checksum:
   name_template: 'sha256sum.txt'
 snapshot:
@@ -40,18 +50,17 @@ release:
   github:
     owner: sighupio
     name: furyagent
-  name_template: '{{ .Tag }}'
+  name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
 brews:
   - name: furyagent
     # IDs of the archives to use.
     # Defaults to all.
     ids:
-      - furyagent-linux
       - furyagent-darwin
     github:
       owner: sighupio
       name: homebrew-furyagent
-    url_template: 'https://github.com/sighupio/furyagent/releases/download/v{{ .Tag }}/{{ .ArtifactName }}'
+    url_template: 'https://github.com/sighupio/furyagent/releases/download/v{{ .Tag }}/{{ .ArtifactName }}.zip'
     folder: Formula
     description: 'Fury Agent binary'
     conflicts:
