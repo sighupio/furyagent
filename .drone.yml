@@ -3,9 +3,16 @@ kind: pipeline
 name: test
 
 steps:
+  - name: fetch
+    image: docker:git
+    commands:
+      - git fetch --tags
+
   - name: lint
     image: golang
     pull: always
+    depends_on:
+      - fetch
     commands:
       - find . -name "*.go" | xargs gofmt -s -d
       #- go vet ./...
@@ -51,6 +58,9 @@ steps:
   - name: build-release-homebrew
     image: goreleaser/goreleaser:v0.124
     pull: always
+    depends_on:
+      - lint
+      - fetch
     environment:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
