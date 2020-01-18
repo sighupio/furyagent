@@ -4,7 +4,7 @@ before:
     - go mod vendor
 project_name: furyagent
 builds:
-  - binary: 'furyagent-darwin-amd64'
+  - binary: 'furyagent'
     id: furyagent-darwin
     goarch:
       - amd64
@@ -12,7 +12,7 @@ builds:
       - darwin
     env:
       - CGO_ENABLED=0
-  - binary: 'furyagent-linux-amd64'
+  - binary: 'furyagent'
     id: furyagent-linux
     goarch:
       - amd64
@@ -21,24 +21,12 @@ builds:
     env:
       - CGO_ENABLED=0
 archives:
-  - format: binary
-    id: furyagent-darwin
-    wrap_in_directory: false
-    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
-    builds:
-      - furyagent-darwin
   - format: tar.gz
     id: furyagent-darwin-tgz
     wrap_in_directory: false
     name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
     builds:
       - furyagent-darwin
-  - format: binary
-    id: furyagent-linux
-    wrap_in_directory: false
-    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
-    builds:
-      - furyagent-linux
   - format: tar.gz
     id: furyagent-linux-tgz
     wrap_in_directory: false
@@ -57,9 +45,7 @@ changelog:
       - '^test:'
 release:
   ids:
-    - furyagent-linux
     - furyagent-linux-tgz
-    - furyagent-darwin
     - furyagent-darwin-tgz
   github:
     owner: sighupio
@@ -77,4 +63,4 @@ brews:
     test: |
       system "#{bin}/furyagent"
     install: |
-      bin.install 'furyagent'
+      bin.install 'furyagent-darwin-amd64'
