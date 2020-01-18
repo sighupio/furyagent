@@ -63,4 +63,4 @@ brews:
     test: |
       system "#{bin}/furyagent"
     install: |
-      bin.install 'furyagent-darwin-amd64'
+      bin.install 'furyagent'
