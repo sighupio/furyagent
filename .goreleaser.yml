@@ -27,6 +27,12 @@ archives:
     name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
     builds:
       - furyagent-darwin
+  - format: tar.gz
+    id: furyagent-darwin-tgz
+    wrap_in_directory: false
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-darwin
   - format: binary
     id: furyagent-linux
     wrap_in_directory: false
@@ -47,6 +53,7 @@ release:
   ids:
     - furyagent-linux
     - furyagent-darwin
+    - furyagent-darwin-tgz
   github:
     owner: sighupio
     name: furyagent
