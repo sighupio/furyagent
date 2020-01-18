@@ -39,6 +39,12 @@ archives:
     name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
     builds:
       - furyagent-linux
+  - format: tar.gz
+    id: furyagent-linux-tgz
+    wrap_in_directory: false
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-linux
 checksum:
   name_template: 'sha256sum.txt'
 snapshot:
@@ -52,6 +58,7 @@ changelog:
 release:
   ids:
     - furyagent-linux
+    - furyagent-linux-tgz
     - furyagent-darwin
     - furyagent-darwin-tgz
   github:
