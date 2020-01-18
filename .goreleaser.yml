@@ -57,6 +57,7 @@ brews:
       owner: sighupio
       name: homebrew-furyagent
     folder: Formula
+    homepage: 'https://gihub.com/sighupio/furyagent'
     description: 'Fury Agent binary'
     conflicts:
       - furyagent
