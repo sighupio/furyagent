@@ -60,8 +60,6 @@ release:
   name_template: '{{ .Tag }}'
 brews:
   - name: furyagent
-    # IDs of the archives to use.
-    # Defaults to all.
     github:
       owner: sighupio
       name: homebrew-furyagent
