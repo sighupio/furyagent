@@ -55,8 +55,6 @@ brews:
   - name: furyagent
     # IDs of the archives to use.
     # Defaults to all.
-    ids:
-      - furyagent-darwin
     github:
       owner: sighupio
       name: homebrew-furyagent
