@@ -7,21 +7,22 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/user"
 	"path"
+	"strconv"
 	"time"
 
 	"gopkg.in/yaml.v2"
 )
 
 const (
-	SSHFileName                   = "ssh-users.yml"
+	SSHUserSpecs                  = "ssh-users.yml"
 	SSHBucketDir                  = "ssh"
-	SSHLocalDir                   = "secrets/ssh"
 	SSHAuthorizedKeysFileName     = "authorized_keys"
 	SSHAuthorizedKeysTempFileName = "authorized_keys_tmp"
 )
 
-type SSH struct {
+type SSHComponent struct {
 	ClusterComponentData
 }
 
@@ -30,38 +31,31 @@ type SSHUsersFile struct {
 }
 
 type UserSpec struct {
-	Name             string `yaml:"name"`
-	GithubID         string `yaml:"github_id"`
-	SSHPublicKeyFile string `yaml:"ssh_public_key_file"`
+	Name     string `yaml:"name"`
+	GithubID string `yaml:"github_id"`
 }
 
 //Backup is a nil function to match the interface
-func (o SSH) Backup() error {
+func (o SSHComponent) Backup() error {
 	return nil
 }
 
 //Restore is a nil function to match the interface
-func (o SSH) Restore() error {
+func (o SSHComponent) Restore() error {
 	return nil
 }
 
-func (o SSH) getFile() [][]string {
-	if o.SSH.DefaultSShPubKeyFile != "" {
-		return [][]string{
-			[]string{SSHFileName, SSHFileName},
-			[]string{o.SSH.DefaultSShPubKeyFile, o.SSH.DefaultSShPubKeyFile},
-		}
-	}
+func (o SSHComponent) getFiles() [][]string {
 	return [][]string{
-		[]string{SSHFileName, SSHFileName},
+		[]string{SSHUserSpecs, SSHUserSpecs},
 	}
 }
 
 var errorFound bool
 
 // Configure setup for each file entry the github configured ssh keys in the authorized_keys file
-func (o SSH) Configure(overwrite bool) error {
-	files := o.getFile()
+func (o SSHComponent) Configure(overwrite bool) error {
+	files := o.getFiles()
 	err := o.DownloadFilesToDirectory(files, o.SSH.TempDir, SSHBucketDir, overwrite)
 	if err != nil {
 		log.Fatal("error downloading files ", err)
@@ -70,43 +64,25 @@ func (o SSH) Configure(overwrite bool) error {
 }
 
 func sshPubKeys(config SSHConfig) error {
-	sshYaml := SSHUsersFile{}
-	fileRead, err := ioutil.ReadFile(string(path.Join(config.TempDir, SSHFileName)))
-	if err != nil {
-		log.Fatal("no file found to open in "+path.Join(config.TempDir, SSHFileName), err)
-	}
-	err = yaml.Unmarshal(fileRead, &sshYaml)
-	if err != nil {
-		log.Fatal("unable to unmarshal file "+path.Join(config.TempDir, SSHFileName), err)
-	}
 	//parse the ssh-user file
-
+	sshYaml, err := unmarshalSSHUserYaml(config.TempDir, config)
 	var errorFound bool
 	authorizedKeys := &bytes.Buffer{}
 	errorFound = false
 	for _, user := range sshYaml.Users {
 		if user.GithubID != "" {
+			log.Printf("user github found: %s", user.GithubID)
 			authorizedKeys, err = getPublicKeyFromGithub(user, authorizedKeys)
 			if err != nil {
+				log.Println("error found while getting github key for user %s", user.GithubID)
 				errorFound = true
 			}
 		}
-		if user.SSHPublicKeyFile != "" {
-			authorizedKeys, err = getPublicKeyFromFile(user, authorizedKeys)
-
-		}
 	}
-	if config.DefaultSShPubKeyFile != "" {
-		//write the default_ssh_key in the buffer too
-		fileContent, err := ioutil.ReadFile(string(path.Join(config.TempDir, config.DefaultSShPubKeyFile)))
-		if err != nil {
-			log.Fatal(err)
-		}
-		authorizedKeys.WriteString("#### default_ssh pub_key\n")
-		authorizedKeys.WriteString(string(fileContent))
-	}
+	homeUserSsh, uid, gid := GetInfosFromUser(config.User)
 
-	f, err := os.Create(path.Join(config.UserDir, SSHAuthorizedKeysTempFileName))
+	log.Printf("creating temporary authorizedKeys file %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName)))
+	f, err := os.Create(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName))
 	if err != nil {
 		return err
 	}
@@ -115,24 +91,63 @@ func sshPubKeys(config SSHConfig) error {
 	if err != nil {
 		return err
 	}
+	err = os.Chown(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName), uid, gid)
+	if err != nil {
+		log.Printf("error while changing ownership to file %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName)))
+	}
 
 	//Once finished, copy it to the the real authorized_keys file if everything went ok
 	if errorFound {
 		log.Fatal("conservative behaviour: error found, skipping the authorized_keys update")
 	}
-
-	err = os.Rename(path.Join(config.UserDir, SSHAuthorizedKeysTempFileName), path.Join(config.UserDir, SSHAuthorizedKeysFileName))
+	log.Printf("everything is fine! Writing temp file %s to its final destination %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName)), string(path.Join(homeUserSsh, SSHAuthorizedKeysFileName)))
+	err = os.Rename(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName), path.Join(homeUserSsh, SSHAuthorizedKeysFileName))
 	if err != nil {
 		log.Fatal("error while moving file to authorized_keys: ", err)
+	}
+	err = os.Chown(path.Join(homeUserSsh, SSHAuthorizedKeysFileName), uid, gid)
+	if err != nil {
+		log.Printf("error while changing ownership to file %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysFileName)))
 	}
 	return nil
 }
 
+func GetInfosFromUser(username string) (sshPath string, uid int, gid int) {
+	homeUserSsh := path.Join("/home", username, ".ssh")
+	userInfo, err := user.Lookup(username)
+	if err != nil {
+		log.Fatal(err)
+	}
+	uid, err = strconv.Atoi(userInfo.Uid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	gid, err = strconv.Atoi(userInfo.Uid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return homeUserSsh, uid, gid
+}
+
 //Init will upload to the configured bucket the ssh file users
 
-func (o SSH) Init(dir string) error {
-	files := o.getFile()
-	return o.UploadFilesFromDirectory(files, SSHLocalDir, SSHBucketDir)
+func (o SSHComponent) Init(dir string) error {
+	files := o.getFiles()
+	return o.UploadFilesFromDirectoryWithForce(files, o.SSH.LocalDirConfigs, SSHBucketDir)
+}
+
+func unmarshalSSHUserYaml(dirPath string, config SSHConfig) (SSHUsersFile, error) {
+	sshYaml := SSHUsersFile{}
+	log.Printf("loading spec file %s", string(path.Join(dirPath, SSHUserSpecs)))
+	fileRead, err := ioutil.ReadFile(string(path.Join(dirPath, SSHUserSpecs)))
+	if err != nil {
+		log.Fatal("no file found to open in "+path.Join(dirPath, SSHUserSpecs), err)
+	}
+	err = yaml.Unmarshal(fileRead, &sshYaml)
+	if err != nil {
+		log.Fatal("unable to unmarshal file "+path.Join(dirPath, SSHUserSpecs), err)
+	}
+	return sshYaml, nil
 }
 
 func getPublicKeyFromGithub(userspec UserSpec, authorizedKeys *bytes.Buffer) (*bytes.Buffer, error) {
@@ -158,12 +173,10 @@ func getPublicKeyFromGithub(userspec UserSpec, authorizedKeys *bytes.Buffer) (*b
 	return authorizedKeys, nil
 }
 
-func getPublicKeyFromFile(userspec UserSpec, authorizedKeys *bytes.Buffer) (*bytes.Buffer, error) {
-	fileContent, err := ioutil.ReadFile(string(userspec.SSHPublicKeyFile))
-	if err != nil {
-		return authorizedKeys, err
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
 	}
-	authorizedKeys.WriteString("####" + userspec.Name + "\n")
-	authorizedKeys.WriteString(string(fileContent))
-	return authorizedKeys, nil
+	return !info.IsDir()
 }
