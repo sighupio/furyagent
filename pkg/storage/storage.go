@@ -166,6 +166,20 @@ func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 	return nil
 }
 
+func (s *Data) UploadForce(filename string, size int64, obj io.ReadCloser) error {
+	//upload snapshot to container with given name
+	defer obj.Close()
+	item, err := s.container.Put(filename, obj, size, nil)
+	if err != nil {
+		return err
+	}
+	log.Println("Item URL: ", item.URL())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Data) UploadFile(filename, localPath string) error {
 	log.Printf("uploading %s to %s", localPath, filename)
 	fileSize, err := FileSize(localPath)
@@ -179,11 +193,36 @@ func (s *Data) UploadFile(filename, localPath string) error {
 	return s.Upload(filename, fileSize, r)
 }
 
+func (s *Data) UploadFileForce(filename, localPath string) error {
+	log.Printf("uploading %s to %s", localPath, filename)
+	fileSize, err := FileSize(localPath)
+	if err != nil {
+		return err
+	}
+	r, err := os.Open(localPath)
+	if err != nil {
+		return err
+	}
+	return s.UploadForce(filename, fileSize, r)
+}
+
 func (store *Data) UploadFilesFromDirectory(files [][]string, localDir string, toPath string) error {
 	for _, fileSrcDest := range files {
 		local, remote := filepath.Join(localDir, fileSrcDest[0]), filepath.Join(toPath, fileSrcDest[1])
 		log.Printf("trying to upload %s to %s", local, remote)
 		err := store.UploadFile(remote, local)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (store *Data) UploadFilesFromDirectoryWithForce(files [][]string, localDir string, toPath string) error {
+	for _, fileSrcDest := range files {
+		local, remote := filepath.Join(localDir, fileSrcDest[0]), filepath.Join(toPath, fileSrcDest[1])
+		log.Printf("trying to upload %s to %s", local, remote)
+		err := store.UploadFileForce(remote, local)
 		if err != nil {
 			return err
 		}
