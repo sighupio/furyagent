@@ -78,7 +78,7 @@ var SSHKeysConfigCmd = &cobra.Command{
 	Short: "Setup ssh keys from s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var ssh component.ClusterComponent = component.SSH{data}
+		var ssh component.ClusterComponent = component.SSHComponent{data}
 		err := ssh.Configure(overwrite)
 		if err != nil {
 			log.Fatal(err)

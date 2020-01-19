@@ -60,7 +60,7 @@ var sshKeysInitCmd = &cobra.Command{
 	Short: "upload ssh to s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var ssh component.ClusterComponent = component.SSH{data}
+		var ssh component.ClusterComponent = component.SSHComponent{data}
 		err := ssh.Init(initDir)
 		if err != nil {
 			log.Fatal(err)
