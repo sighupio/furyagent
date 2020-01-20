@@ -7,9 +7,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -33,6 +35,13 @@ type SSHUsersFile struct {
 type UserSpec struct {
 	Name     string `yaml:"name"`
 	GithubID string `yaml:"github_id"`
+}
+
+type SystemUser struct {
+	Name string
+	Home string
+	Gid  int
+	Uid  int
 }
 
 //Backup is a nil function to match the interface
@@ -79,10 +88,16 @@ func sshPubKeys(config SSHConfig) error {
 			}
 		}
 	}
-	homeUserSsh, uid, gid := GetInfosFromUser(config.User)
+	var sysUser *SystemUser
+	sysUser, err = createUser(config.User)
+	if err != nil {
+		log.Fatal("error while creating user", err)
+	}
 
-	log.Printf("creating temporary authorizedKeys file %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName)))
-	f, err := os.Create(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName))
+	homeUserSSH := path.Join(sysUser.Home, ".ssh")
+
+	log.Printf("creating temporary authorizedKeys file %s", string(path.Join(homeUserSSH, SSHAuthorizedKeysTempFileName)))
+	f, err := os.Create(path.Join(homeUserSSH, SSHAuthorizedKeysTempFileName))
 	if err != nil {
 		return err
 	}
@@ -91,29 +106,28 @@ func sshPubKeys(config SSHConfig) error {
 	if err != nil {
 		return err
 	}
-	err = os.Chown(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName), uid, gid)
+	err = os.Chown(path.Join(homeUserSSH, SSHAuthorizedKeysTempFileName), sysUser.Uid, sysUser.Gid)
 	if err != nil {
-		log.Printf("error while changing ownership to file %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName)))
+		log.Printf("error while changing ownership to file %s", string(path.Join(homeUserSSH, SSHAuthorizedKeysTempFileName)))
 	}
 
 	//Once finished, copy it to the the real authorized_keys file if everything went ok
 	if errorFound {
 		log.Fatal("conservative behaviour: error found, skipping the authorized_keys update")
 	}
-	log.Printf("everything is fine! Writing temp file %s to its final destination %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName)), string(path.Join(homeUserSsh, SSHAuthorizedKeysFileName)))
-	err = os.Rename(path.Join(homeUserSsh, SSHAuthorizedKeysTempFileName), path.Join(homeUserSsh, SSHAuthorizedKeysFileName))
+	log.Printf("everything is fine! Writing temp file %s to its final destination %s", string(path.Join(homeUserSSH, SSHAuthorizedKeysTempFileName)), string(path.Join(homeUserSSH, SSHAuthorizedKeysFileName)))
+	err = os.Rename(path.Join(homeUserSSH, SSHAuthorizedKeysTempFileName), path.Join(homeUserSSH, SSHAuthorizedKeysFileName))
 	if err != nil {
 		log.Fatal("error while moving file to authorized_keys: ", err)
 	}
-	err = os.Chown(path.Join(homeUserSsh, SSHAuthorizedKeysFileName), uid, gid)
+	err = os.Chown(path.Join(homeUserSSH, SSHAuthorizedKeysFileName), sysUser.Uid, sysUser.Gid)
 	if err != nil {
-		log.Printf("error while changing ownership to file %s", string(path.Join(homeUserSsh, SSHAuthorizedKeysFileName)))
+		log.Printf("error while changing ownership to file %s", string(path.Join(homeUserSSH, SSHAuthorizedKeysFileName)))
 	}
 	return nil
 }
 
-func GetInfosFromUser(username string) (sshPath string, uid int, gid int) {
-	homeUserSsh := path.Join("/home", username, ".ssh")
+func GetUidGid(username string) (uid, gid int) {
 	userInfo, err := user.Lookup(username)
 	if err != nil {
 		log.Fatal(err)
@@ -126,7 +140,7 @@ func GetInfosFromUser(username string) (sshPath string, uid int, gid int) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return homeUserSsh, uid, gid
+	return uid, gid
 }
 
 //Init will upload to the configured bucket the ssh file users
@@ -171,6 +185,92 @@ func getPublicKeyFromGithub(userspec UserSpec, authorizedKeys *bytes.Buffer) (*b
 		return authorizedKeys, fmt.Errorf("error while getting github user")
 	}
 	return authorizedKeys, nil
+}
+
+func getOS() string {
+	b, err := ioutil.ReadFile("/etc/os-release")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := strings.Split(string(b), "\n")
+	version := ""
+	for _, line := range s {
+		if bits := strings.Split(line, `=`); len(bits) > 0 {
+			if bits[0] == "ID" {
+				version = strings.Replace(bits[1], `"`, ``, -1)
+			}
+		}
+	}
+
+	if version != "" {
+		return version
+	}
+	return ""
+}
+
+func getAdduserCommand(home, username string) []string {
+
+	switch strings.ToLower(getOS()) {
+	case "debian", "ubuntu":
+		log.Printf("os identified is %s: ", strings.ToLower(getOS()))
+		cmd := []string{"adduser", "--home", home, "--disabled-password", username}
+		return cmd
+	case "centos", "redhat":
+		log.Printf("os identified is %s: ", strings.ToLower(getOS()))
+		cmd := []string{"adduser", "-m", "--home-dir", home, username}
+		return cmd
+	default:
+		log.Fatalf("the os %s is not handled", getOS())
+	}
+	return []string{}
+}
+
+func createUser(username string) (*SystemUser, error) {
+	userSpec := new(SystemUser)
+	if _, err := user.Lookup(username); err == nil {
+		log.Printf("the user %s already exists", username)
+		return userSpec, err
+	}
+	home := path.Join("/home", username)
+	log.Println("the user %s is missing, creating it", username)
+	cmdList := getAdduserCommand(home, username)
+	cmd := exec.Command(cmdList[0], cmdList[1:]...)
+	log.Println("executing command: ", cmd.String())
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	err := cmd.Run()
+	log.Println(output.String())
+	if err != nil {
+		log.Println("error while executing command adduser")
+		return userSpec, err
+	}
+	homeUserSSH := path.Join(home, ".ssh")
+	uid, gid := GetUidGid(username)
+	sshDir := path.Join(homeUserSSH)
+	ok, err := exists(sshDir)
+	if !ok {
+		log.Printf("the %s is missing, creating it", sshDir)
+		os.Mkdir(sshDir, 0755)
+		os.Chown(sshDir, uid, gid)
+	}
+
+	userSpec.Name = username
+	userSpec.Home = home
+	userSpec.Gid = gid
+	userSpec.Uid = uid
+
+	return userSpec, nil
+}
+
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return true, err
 }
 
 func fileExists(filename string) bool {
