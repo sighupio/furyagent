@@ -67,6 +67,7 @@ steps:
     secrets:
       - GITHUB_TOKEN
     commands:
+      - goreleaser check
       - goreleaser --debug
     when:
       event:
