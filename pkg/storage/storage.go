@@ -24,11 +24,10 @@ import (
 	"path/filepath"
 
 	"github.com/graymeta/stow"
+	"github.com/graymeta/stow/azure"
+	"github.com/graymeta/stow/google"
 	"github.com/graymeta/stow/local"
 	"github.com/graymeta/stow/s3"
-	//  "github.com/graymeta/stow/azure"
-	//  "github.com/graymeta/stow/google"
-	// "github.com/graymeta/stow/swift"
 )
 
 // Data represent where to put whatever you're downloading
@@ -60,24 +59,22 @@ func Init(cfg *Config) (*Data, error) {
 				s3.ConfigRegion:      cfg.Region,
 			}
 		}
-	// case "google":
-	// 	config = stow.ConfigMap{
-	// 		google.ConfigJSON:      os.Getenv("GOOGLE_CLOUD_KEYFILE_JSON"),
-	// 		google.ConfigProjectId: os.Getenv("GOOGLE_PROJECT"),
-	// 		google.ConfigScopes:    "read-write",
-	// 	}
-	// case "azure":
-	// 	config = stow.ConfigMap{
-	// 		azure.ConfigAccount: os.Getenv("AZURE_CONFIG_ID"),
-	// 		azure.ConfigKey:     os.Getenv("AZURE_CONFIG_KEY"),
-	// 	}
-	// case "swift":
-	// 	config = stow.ConfigMap{
-	// 		swift.ConfigUsername:      os.Getenv("OS_USERNAME"),
-	// 		swift.ConfigKey:           os.Getenv("OS_TOKEN"),
-	// 		swift.ConfigTenantName:    os.Getenv("OS_TENANT_NAME"),
-	// 		swift.ConfigTenantAuthURL: os.Getenv("OS_AUTH_URL"),
-	// 	}
+	case "azure":
+		s.containerName = cfg.BucketName
+		config = stow.ConfigMap{
+			azure.ConfigAccount: cfg.AzureStorageAccount,
+			azure.ConfigKey:     cfg.AzureStorageKey,
+		}
+	case "google":
+		s.containerName = cfg.BucketName
+		sa, err := ioutil.ReadFile(cfg.GoogleServiceAccount)
+		if err != nil {
+			return nil, fmt.Errorf("Cannot read Google Service Account file %s: %v", cfg.GoogleServiceAccount, err)
+		}
+		config = stow.ConfigMap{
+			google.ConfigJSON:      string(sa),
+			google.ConfigProjectId: cfg.GoogleProjectId,
+		}
 	case "local":
 		config = stow.ConfigMap{
 			local.ConfigKeyPath: cfg.LocalPath,
@@ -204,7 +201,7 @@ func (store *Data) UploadFilesFromMemory(files map[string][]byte, dir string) er
 }
 
 func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, fromPath string, overwrite bool) error {
-	os.MkdirAll(localDir, os.ModeDir)
+	os.MkdirAll(localDir, 0750)
 	for _, fileSrcDst := range files {
 		local, remote := fileSrcDst[0], fileSrcDst[1]
 		file := filepath.Join(localDir, local)
