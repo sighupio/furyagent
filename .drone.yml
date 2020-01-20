@@ -14,18 +14,28 @@ steps:
         - push
         - tag
 
+  - name: go-mod-vendor
+    image: golang
+    pull: always
+    depends_on:
+      - lint
+    commands:
+      - go mod vendor
+    when:
+      event:
+        - push
+
   - name: build-linux-push
     group: build
     image: golang
     pull: always
     depends_on:
-      - lint
+      - go-mod-vendor
     environment:
       GOOS: linux
       GOARCH: amd64
       CGO_ENABLED: 0
     commands:
-      - go mod vendor
       - go build
     when:
       event:
@@ -36,13 +46,12 @@ steps:
     image: golang
     pull: always
     depends_on:
-      - lint
+      - go-mod-vendor
     environment:
       GOOS: darwin
       GOARCH: amd64
       CGO_ENABLED: 0
     commands:
-      - go mod vendor
       - go build
     when:
       event:
@@ -53,13 +62,12 @@ steps:
     image: golang
     pull: always
     depends_on:
-      - lint
+      - go-mod-vendor
     environment:
       GOOS: linux
       GOARCH: amd64
       CGO_ENABLED: 0
     commands:
-      - go mod vendor
       - go build -a -ldflags '-extldflags "-static"' -o bin/releases/furyagent-linux-amd64  .
     when:
       event:
@@ -70,13 +78,12 @@ steps:
     image: golang
     pull: always
     depends_on:
-      - lint
+      - go-mod-vendor
     environment:
       GOOS: darwin
       GOARCH: amd64
       CGO_ENABLED: 0
     commands:
-      - go mod vendor
       - go build -a -ldflags '-extldflags "-static"' -o bin/releases/furyagent-darwin-amd64 .
     when:
       event:
