@@ -22,6 +22,7 @@ const (
 	SSHBucketDir                  = "ssh"
 	SSHAuthorizedKeysFileName     = "authorized_keys"
 	SSHAuthorizedKeysTempFileName = "authorized_keys_tmp"
+	SSHSudoerDir                  = "/etc/sudoers.d"
 )
 
 type SSHComponent struct {
@@ -227,27 +228,42 @@ func getAdduserCommand(home, username string) []string {
 
 func createUser(username string) (*SystemUser, error) {
 	userSpec := new(SystemUser)
+	var userAlreadyCreated bool
+	userAlreadyCreated = false
 	if _, err := user.Lookup(username); err == nil {
 		log.Printf("the user %s already exists", username)
-		return userSpec, err
+		userAlreadyCreated = true
 	}
 	home := path.Join("/home", username)
 	log.Println("the user %s is missing, creating it", username)
-	cmdList := getAdduserCommand(home, username)
-	cmd := exec.Command(cmdList[0], cmdList[1:]...)
-	log.Println("executing command: ", cmd.String())
-	var output bytes.Buffer
-	cmd.Stdout = &output
-	err := cmd.Run()
-	log.Println(output.String())
-	if err != nil {
-		log.Println("error while executing command adduser")
-		return userSpec, err
+	if !userAlreadyCreated {
+		cmdList := getAdduserCommand(home, username)
+		cmd := exec.Command(cmdList[0], cmdList[1:]...)
+		log.Println("executing command: ", cmd.String())
+		var output bytes.Buffer
+		cmd.Stdout = &output
+		err := cmd.Run()
+		log.Println(output.String())
+		if err != nil {
+			log.Fatal("error while executing command adduser")
+		}
 	}
+	// create sudoer file for user
+	sudoerFile := fmt.Sprintf("99_%s", username)
+	sudoerPathname := path.Join(SSHSudoerDir, sudoerFile)
+	if !fileExists(sudoerPathname) {
+		log.Printf("the sudoer file %s is missing, creating it", sudoerPathname)
+		sudoerContent := []byte(fmt.Sprintf("%s ALL=(ALL) NOPASSWD:ALL", username))
+		err := ioutil.WriteFile(sudoerPathname, sudoerContent, 0644)
+		if err != nil {
+			log.Fatal("error while  writing sudoer configuration")
+		}
+	}
+	// create sshdir
 	homeUserSSH := path.Join(home, ".ssh")
 	uid, gid := GetUidGid(username)
 	sshDir := path.Join(homeUserSSH)
-	ok, err := exists(sshDir)
+	ok, _ := exists(sshDir)
 	if !ok {
 		log.Printf("the %s is missing, creating it", sshDir)
 		os.Mkdir(sshDir, 0755)
