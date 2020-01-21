@@ -1,0 +1,81 @@
+---
+before:
+  hooks:
+    - go mod vendor
+project_name: furyagent
+builds:
+  - binary: 'furyagent'
+    id: furyagent-darwin
+    goarch:
+      - amd64
+    goos:
+      - darwin
+    env:
+      - CGO_ENABLED=0
+  - binary: 'furyagent'
+    id: furyagent-linux
+    goarch:
+      - amd64
+    goos:
+      - linux
+    env:
+      - CGO_ENABLED=0
+archives:
+  - format: tar.gz
+    id: furyagent-darwin-tgz
+    wrap_in_directory: false
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-darwin
+  - format: tar.gz
+    id: furyagent-linux-tgz
+    wrap_in_directory: false
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-linux
+  - format: binary
+    id: furyagent-darwin-bin
+    wrap_in_directory: false
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-darwin
+  - format: binary
+    id: furyagent-linux-bin
+    wrap_in_directory: false
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    builds:
+      - furyagent-linux
+checksum:
+  name_template: 'sha256sum.txt'
+snapshot:
+  name_template: '{{ .Tag }}'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  ids:
+    - furyagent-linux-tgz
+    - furyagent-linux-bin
+    - furyagent-darwin-tgz
+    - furyagent-darwin-bin
+  github:
+    owner: sighupio
+    name: furyagent
+  name_template: '{{ .Tag }}'
+brews:
+  - name: furyagent
+    github:
+      owner: sighupio
+      name: homebrew-furyagent
+    folder: Formula
+    homepage: 'https://gihub.com/sighupio/furyagent'
+    description: 'Fury Agent binary'
+    conflicts:
+      - furyagent
+    test: |
+      system "#{bin}/furyagent"
+    install: |
+      bin.install 'furyagent'
