@@ -1,10 +1,16 @@
 package component
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"os"
 	"os/exec"
+	"time"
 
 	certutil "k8s.io/client-go/util/cert"
 	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
@@ -47,7 +53,28 @@ func (o OpenVPN) Configure(overwrite bool) error {
 }
 
 func (o OpenVPN) Init(dir string) error {
-	ca, privateKey, err := pki.NewCertificateAuthority(&CertConfig)
+	now := time.Now()
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		log.Fatal(err)
+	}
+	tmpl := x509.Certificate{
+		SerialNumber: new(big.Int).SetInt64(0),
+		Subject: pkix.Name{
+			CommonName:   "openvpn",
+			Organization: []string{"SIGHUP s.r.l."},
+		},
+		NotBefore:             now.UTC(),
+		NotAfter:              now.Add(time.Hour * 24 * 365 * 10).UTC(),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+	caDERBytes, err := x509.CreateCertificate(rand.Reader, &tmpl, &tmpl, privateKey.Public(), privateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ca, err := x509.ParseCertificate(caDERBytes)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,10 +115,6 @@ func getTaKey() ([]byte, error) {
 		return nil, err
 	}
 	data, err := ioutil.ReadFile(tmpfile.Name())
-
-	// fmt.Println("Temporary file is: ", tmpfile.Name())
-
-	// fmt.Println("With content: ", string(data))
 
 	return data, nil
 }
