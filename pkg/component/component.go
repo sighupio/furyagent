@@ -102,7 +102,8 @@ type OpenVPNClientConfig struct {
 }
 
 type SSHConfig struct {
-	User            string `mapstructure:"user"`
-	TempDir         string `mapstructure:"tempDir"`
-	LocalDirConfigs string `mapstructure:"localDirConfigs"`
+	User            string         `mapstructure:"user"`
+	TempDir         string         `mapstructure:"tempDir"`
+	LocalDirConfigs string         `mapstructure:"localDirConfigs"`
+	Adapter         HTTPAdapterSet `mapstructure:"adapter"`
 }

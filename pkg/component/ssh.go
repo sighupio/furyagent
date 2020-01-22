@@ -6,6 +6,7 @@ import (
 	ioutil "io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/user"
@@ -34,8 +35,8 @@ type SSHUsersFile struct {
 }
 
 type UserSpec struct {
-	Name     string `yaml:"name"`
-	GithubID string `yaml:"github_id"`
+	Name   string `yaml:"name"`
+	UserID string `yaml:"user_id"`
 }
 
 type SystemUser struct {
@@ -43,6 +44,11 @@ type SystemUser struct {
 	Home string
 	Gid  int
 	Uid  int
+}
+
+type HTTPAdapterSet struct {
+	Name string
+	Uri  string
 }
 
 //Backup is a nil function to match the interface
@@ -73,22 +79,28 @@ func (o SSHComponent) Configure(overwrite bool) error {
 	return sshPubKeys(o.SSH)
 }
 
-func sshPubKeys(config SSHConfig) error {
-	//parse the ssh-user file
-	sshYaml, err := unmarshalSSHUserYaml(config.TempDir, config)
-	var errorFound bool
+func getKeysFromAdapter(config SSHConfig, yamlSPec SSHUsersFile) (*bytes.Buffer, bool, error) {
 	authorizedKeys := &bytes.Buffer{}
+	var errorFound bool
 	errorFound = false
-	for _, user := range sshYaml.Users {
-		if user.GithubID != "" {
-			log.Printf("user github found: %s", user.GithubID)
-			authorizedKeys, err = getPublicKeyFromGithub(user, authorizedKeys)
+	for _, user := range yamlSPec.Users {
+		if user.UserID != "" {
+			log.Printf("loading public keys for user %s", user.UserID)
+			_, err := getPublicKeyFromHttp(config.Adapter, user, authorizedKeys)
 			if err != nil {
-				log.Println("error found while getting github key for user %s", user.GithubID)
+				log.Printf("error found while getting github key for user %s", user.UserID)
 				errorFound = true
 			}
 		}
 	}
+	return authorizedKeys, errorFound, nil
+}
+
+func sshPubKeys(config SSHConfig) error {
+	//parse the ssh-user file
+	sshYaml, err := unmarshalSSHUserYaml(config.TempDir, config)
+	authorizedKeys := &bytes.Buffer{}
+	authorizedKeys, errorFound, err = getKeysFromAdapter(config, sshYaml)
 	var sysUser *SystemUser
 	sysUser, err = createUser(config.User)
 	if err != nil {
@@ -165,26 +177,44 @@ func unmarshalSSHUserYaml(dirPath string, config SSHConfig) (SSHUsersFile, error
 	return sshYaml, nil
 }
 
-func getPublicKeyFromGithub(userspec UserSpec, authorizedKeys *bytes.Buffer) (*bytes.Buffer, error) {
+func getPublicKeyFromHttp(adapter HTTPAdapterSet, userspec UserSpec, authorizedKeys *bytes.Buffer) (*bytes.Buffer, error) {
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
-	resp, err := client.Get("https://github.com/" + userspec.GithubID + ".keys")
+	var baseURL string
+	switch adapter.Name {
+	case "github":
+		baseURL = "https://github.com"
+	case "http":
+		if adapter.Uri == "" {
+			log.Fatal("the uri field cannot be empty if adapter http is specified")
+		}
+		baseURL = adapter.Uri
+	default:
+		log.Fatalf("the current adapter %s is not supported", adapter.Name)
+	}
+	u, err := url.Parse(baseURL)
+	//the structure of the http `github-agnostic` must be the same of github: every user must have a file `user.keys`
+	u.Path = path.Join(u.Path, userspec.UserID+".keys")
+	s := u.String()
+	resp, err := client.Get(s)
 	if err != nil {
-		log.Fatal("http protocol error", err)
+		log.Fatal("http protocol error: ", err)
 	}
 	if resp.StatusCode == 200 {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
 		log.Println("writing ssh keys for user " + userspec.Name)
-		authorizedKeys.WriteString("#### " + userspec.GithubID + "\n")
+		authorizedKeys.WriteString("#### " + userspec.UserID + "\n")
 		authorizedKeys.WriteString(buf.String())
 	} else {
-		log.Println("user " + userspec.GithubID + " not found!")
+		log.Println("user " + userspec.UserID + " not found!")
 		authorizedKeys.WriteString("#### " + userspec.Name + "\n")
-		authorizedKeys.WriteString("#### no keys for " + userspec.GithubID + "\n")
-		return authorizedKeys, fmt.Errorf("error while getting github user")
+		authorizedKeys.WriteString("#### no keys for " + userspec.UserID + "\n")
+		log.Printf("error while getting github user %s", userspec.UserID)
+		return authorizedKeys, fmt.Errorf("errors found getting github users")
 	}
+
 	return authorizedKeys, nil
 }
 
@@ -235,8 +265,8 @@ func createUser(username string) (*SystemUser, error) {
 		userAlreadyCreated = true
 	}
 	home := path.Join("/home", username)
-	log.Println("the user %s is missing, creating it", username)
 	if !userAlreadyCreated {
+		log.Printf("the user %s is missing, creating it", username)
 		cmdList := getAdduserCommand(home, username)
 		cmd := exec.Command(cmdList[0], cmdList[1:]...)
 		log.Println("executing command: ", cmd.String())
