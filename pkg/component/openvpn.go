@@ -1,10 +1,12 @@
 package component
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/pem"
 	"io/ioutil"
 	"log"
 	"math/big"
@@ -21,6 +23,7 @@ const (
 	OpenVPNServerKey  = "server.key"
 	OpenVPNCaCert     = "ca.crt"
 	OpenVPNCaKey      = "ca.key"
+	OpenVPNCRL        = "ca.crl"
 	OpenVPNTaKey      = "ta.key"
 	OpenVPNPath       = "pki/vpn"
 )
@@ -43,6 +46,7 @@ func (o OpenVPN) getFileMappings() [][]string {
 		[]string{OpenVPNServerCert, OpenVPNServerCert},
 		[]string{OpenVPNCaKey, OpenVPNCaKey},
 		[]string{OpenVPNCaCert, OpenVPNCaCert},
+		[]string{OpenVPNCRL, OpenVPNCRL},
 		[]string{OpenVPNTaKey, OpenVPNTaKey},
 	}
 }
@@ -79,6 +83,19 @@ func (o OpenVPN) Init(dir string) error {
 		log.Fatal(err)
 	}
 
+	crl, err := ca.CreateCRL(rand.Reader, privateKey, []pkix.RevokedCertificate{}, now, now.AddDate(10, 0, 0).UTC())
+	if err != nil {
+		return err
+	}
+	crlPEMBlock := &pem.Block{
+		Type:  "X509 CRL",
+		Bytes: crl,
+	}
+	crlBuffer := new(bytes.Buffer)
+	if err = pem.Encode(crlBuffer, crlPEMBlock); err != nil {
+		return err
+	}
+
 	serverCert, serverKey, err := pki.NewCertAndKey(ca, privateKey, &CertConfig)
 	if err != nil {
 		log.Fatal(err)
@@ -94,6 +111,7 @@ func (o OpenVPN) Init(dir string) error {
 		OpenVPNCaKey:      certutil.EncodePrivateKeyPEM(privateKey),
 		OpenVPNServerCert: certutil.EncodeCertPEM(serverCert),
 		OpenVPNServerKey:  certutil.EncodePrivateKeyPEM(serverKey),
+		OpenVPNCRL:        crlBuffer.Bytes(),
 		OpenVPNTaKey:      taKeyData,
 	}
 	if err = o.UploadFilesFromMemory(certs, OpenVPNPath); err != nil {
