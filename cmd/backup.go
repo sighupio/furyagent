@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/sighup-io/furyagent/pkg/component"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 // backupCmd represents the `furyctl backup` command
