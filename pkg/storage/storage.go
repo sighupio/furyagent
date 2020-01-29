@@ -188,6 +188,11 @@ func (s *Data) UploadForce(filename string, size int64, obj io.ReadCloser) error
 	return nil
 }
 
+// Remove removes the filename with the given path
+func (s *Data) Remove(filename string) error {
+	return s.container.RemoveItem(filename)
+}
+
 func (s *Data) UploadFile(filename, localPath string) error {
 	log.Printf("uploading %s to %s", localPath, filename)
 	fileSize, err := FileSize(localPath)
