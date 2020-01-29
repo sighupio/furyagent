@@ -15,6 +15,7 @@ var configureCmd = &cobra.Command{
 }
 
 var overwrite bool
+var revoke bool
 
 // etcdBackupCmd represents the `furyctl backup etcd` command
 var etcdConfigCmd = &cobra.Command{
@@ -79,8 +80,8 @@ var openVPNClientConfigCmd = &cobra.Command{
 	Short: "Get OpenVPN users client from s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var openvpn component.ClusterComponent = component.OpenVPNClient{data}
-		err := openvpn.Configure(overwrite)
+		var openvpn component.OpenVPNClient = component.OpenVPNClient{data}
+		err := openvpn.Configure(overwrite, revoke)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -110,4 +111,5 @@ func init() {
 	configureCmd.AddCommand(openVPNConfigCmd)
 	configureCmd.AddCommand(openVPNClientConfigCmd)
 	configureCmd.AddCommand(SSHKeysConfigCmd)
+	openVPNClientConfigCmd.PersistentFlags().BoolVar(&revoke, "revoke", false, "revoke client certificate (default is `false`)")
 }
