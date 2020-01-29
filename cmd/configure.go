@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/sighup-io/furyagent/pkg/component"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 // backupCmd represents the `furyctl backup` command
@@ -14,6 +15,7 @@ var configureCmd = &cobra.Command{
 }
 
 var overwrite bool
+var revoke bool
 
 // etcdBackupCmd represents the `furyctl backup etcd` command
 var etcdConfigCmd = &cobra.Command{
@@ -64,8 +66,8 @@ var openVPNClientConfigCmd = &cobra.Command{
 	Short: "Get OpenVPN users client from s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var openvpn component.ClusterComponent = component.OpenVPNClient{data}
-		err := openvpn.Configure(overwrite)
+		var openvpn component.OpenVPNClient = component.OpenVPNClient{data}
+		err := openvpn.Configure(overwrite, revoke)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,4 +81,5 @@ func init() {
 	configureCmd.AddCommand(masterConfigCmd)
 	configureCmd.AddCommand(openVPNConfigCmd)
 	configureCmd.AddCommand(openVPNClientConfigCmd)
+	openVPNClientConfigCmd.PersistentFlags().BoolVar(&revoke, "revoke", false, "revoke client certificate (default is `false`)")
 }
