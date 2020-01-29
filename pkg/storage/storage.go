@@ -30,6 +30,18 @@ import (
 	"github.com/graymeta/stow/s3"
 )
 
+type bufferWriteCloser struct {
+	Buf *bytes.Buffer
+}
+
+func (bwc bufferWriteCloser) Write(p []byte) (n int, err error) {
+	return bwc.Buf.Write(p)
+}
+
+func (bwc bufferWriteCloser) Close() error {
+	return nil
+}
+
 // Data represent where to put whatever you're downloading
 type Data struct {
 	location      stow.Location
@@ -222,4 +234,22 @@ func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, f
 		}
 	}
 	return nil
+}
+
+func (store *Data) DownloadFilesToMemory(files []string, fromPath string) (map[string][]byte, error) {
+	out := make(map[string][]byte)
+	for _, fn := range files {
+		bwc := bufferWriteCloser{new(bytes.Buffer)}
+		err := store.Download(filepath.Join(fromPath, fn), bwc)
+		if err != nil {
+			return nil, err
+		}
+		fileContent := make([]byte, bwc.Buf.Len())
+		_, err = bwc.Buf.Read(fileContent)
+		if err != nil {
+			return nil, err
+		}
+		out[fn] = fileContent
+	}
+	return out, nil
 }
