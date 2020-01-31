@@ -8,6 +8,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/aws/aws-sdk-go v1.16.26 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
+	github.com/cenkalti/backoff/v4 v4.0.0
 	github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea // indirect
 	github.com/cosiner/argv v0.0.1 // indirect
 	github.com/davidrjenni/reftools v0.0.0-20180914123528-654d0ba4f96d // indirect
@@ -26,6 +27,7 @@ require (
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.0.0 // indirect
 	github.com/josharian/impl v0.0.0-20180228163738-3d0f908298c4 // indirect
+	github.com/jpillora/backoff v1.0.0
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/jstemmer/gotags v1.4.1 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect

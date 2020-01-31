@@ -14,21 +14,69 @@
 
 package component
 
+import (
+	"bytes"
+	"log"
+	"os/exec"
+	"path"
+	"time"
+
+	backoff "github.com/cenkalti/backoff/v4"
+)
+
+const (
+	JoinFile          = "join.sh"
+	BucketPath        = "join"
+	LocalJoinFilePath = "."
+)
+
 // Node represent the object that reflects what nodes need (implements ClusterComponent)
 type Node struct {
+	ClusterComponentData
+	OverWrite bool
 }
 
 // Backup of a node is Empty
-func (n *Node) Backup(cfg *ClusterConfig) error {
+func (n *Node) Backup() error {
 	return nil
 }
 
 // Restore of a node is Empty
-func (n *Node) Restore(cfg *ClusterConfig) error {
+func (n *Node) Restore() error {
 	return nil
 }
 
-// Configure basicall joins the nodes to the cluster, configures KUBELET_EXTRA_ARGS and restart kubelet and docker in case of necessity
-func (n *Node) Configure(cfg *ClusterConfig) error {
+func (n *Node) getFiles() [][]string {
+	return [][]string{
+		[]string{JoinFile, JoinFile},
+	}
+}
+
+// Configure basically joins the nodes to the cluster
+func (n *Node) Configure(overwrite bool) error {
+	n.OverWrite = overwrite
+
+	b := backoff.NewExponentialBackOff()
+	b.MaxElapsedTime = 20 * time.Minute
+	b.MaxInterval = 5 * time.Second
+	backoff.RetryNotify(n.executeCommand, b, func(err error, t time.Duration) {
+		log.Printf("Failed join attempt: %v -> will retry in %s", err, t)
+	})
+	return nil
+}
+
+func (n *Node) executeCommand() error {
+	files := n.getFiles()
+	err := n.DownloadFilesToDirectory(files, LocalJoinFilePath, BucketPath, n.OverWrite)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("bash", path.Join(LocalJoinFilePath, JoinFile))
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
 	return nil
 }
