@@ -17,6 +17,7 @@ package component
 import (
 	"crypto/x509"
 	"net"
+	"time"
 
 	"github.com/sighup-io/furyagent/pkg/storage"
 	certutil "k8s.io/client-go/util/cert"
@@ -82,7 +83,8 @@ type MasterConfig struct {
 
 // NodeConfig is used to backup/restore/configure worker nodes (backup and restore have an empty implementation right now)
 type NodeConfig struct {
-	CloudProvider string `mapstructure:"caKeyFilename"`
+	CloudProvider string        `mapstructure:"caKeyFilename"`
+	RetryMaxMin   time.Duration `mapstructure:""joinCmdMaxRetryMin`
 }
 
 // BackupConfig are used to generalyze backuconfiguration
