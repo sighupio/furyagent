@@ -84,7 +84,7 @@ type MasterConfig struct {
 // NodeConfig is used to backup/restore/configure worker nodes (backup and restore have an empty implementation right now)
 type NodeConfig struct {
 	CloudProvider string        `mapstructure:"caKeyFilename"`
-	RetryMaxMin   time.Duration `mapstructure:""joinCmdMaxRetryMin`
+	joinTimeout   time.Duration `mapstructure:""joinTimeout`
 }
 
 // BackupConfig are used to generalyze backuconfiguration

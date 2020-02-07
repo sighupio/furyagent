@@ -25,9 +25,10 @@ import (
 )
 
 const (
-	JoinFile          = "join.sh"
-	BucketPath        = "join"
-	LocalJoinFilePath = "."
+	JoinFile                 string        = "join.sh"
+	BucketPath               string        = "join"
+	LocalJoinFilePath        string        = "."
+	DefaultJointTimeoutValue time.Duration = 30
 )
 
 // Node represent the object that reflects what nodes need (implements ClusterComponent)
@@ -60,7 +61,8 @@ type BackoffNode struct {
 func (n Node) Configure(overwrite bool) error {
 	bn := newBackoffNode(n, overwrite)
 	b := backoff.NewExponentialBackOff()
-	b.MaxElapsedTime = n.Node.RetryMaxMin * time.Minute
+	joinTimeout := getJoinTimeout(n.Node.joinTimeout)
+	b.MaxElapsedTime = joinTimeout * time.Minute
 	b.MaxInterval = 5 * time.Second
 	notify := func(err error, t time.Duration) {
 		log.Printf("Failed join attempt: %v -> will retry in %s", err, t)
@@ -70,6 +72,15 @@ func (n Node) Configure(overwrite bool) error {
 		log.Fatalf("join command exit abnormally after %v of retry with error: %v", b.MaxElapsedTime, err)
 	}
 	return nil
+}
+
+func getJoinTimeout(joinTimeout time.Duration) time.Duration {
+	if int(joinTimeout) == 0 {
+		// set default value to 30 min if no values are passed from yaml
+		return DefaultJointTimeoutValue
+	} else {
+		return joinTimeout
+	}
 }
 
 func newBackoffNode(node Node, overwrite bool) *BackoffNode {
