@@ -17,9 +17,12 @@ package component
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"time"
 
 	backoff "github.com/cenkalti/backoff/v4"
@@ -98,13 +101,19 @@ func (b BackoffNode) executeCommand() error {
 	if err != nil {
 		return err
 	}
+
+	err = addNodeName(path.Join(LocalJoinFilePath, JoinFile))
+	if err != nil {
+		return err
+	}
+
 	cmd := exec.Command("bash", path.Join(LocalJoinFilePath, JoinFile))
 	output := new(bytes.Buffer)
 	cmd.Stdout = output
 	cmd.Stderr = output
 	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("error: %v, output: %s\n", err, output.String())
+		return fmt.Errorf("error: %v, output: %s", err, output.String())
 	}
 	return nil
 }
@@ -112,4 +121,36 @@ func (b BackoffNode) executeCommand() error {
 //Init is for interface compliance, now is empty
 func (n Node) Init(s string) error {
 	return nil
+}
+
+func addNodeName(file string) error {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	fqdn, _ := getHostnameFqdn()
+	nodename := fmt.Sprintf(" --node-name=%s", fqdn)
+	newcontent := content
+	if !strings.Contains(string(content), nodename) {
+		newcontent = append(bytes.Trim(content, "\n"), nodename...)
+	}
+	newfile, err := os.OpenFile(file, os.O_WRONLY, 0644)
+	_, err = newfile.Write(newcontent)
+	newfile.Close()
+	content, err = ioutil.ReadFile(file)
+	return nil
+}
+
+func getHostnameFqdn() (string, error) {
+	cmd := exec.Command("/bin/hostname", "-f")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("Error when get_hostname_fqdn: %v", err)
+	}
+	fqdn := out.String()
+	fqdn = fqdn[:len(fqdn)-1] // removing EOL
+
+	return fqdn, nil
 }

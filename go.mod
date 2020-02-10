@@ -4,6 +4,7 @@ require (
 	contrib.go.opencensus.io/exporter/ocagent v0.3.0 // indirect
 	github.com/Azure/azure-sdk-for-go v21.3.0+incompatible // indirect
 	github.com/Azure/go-autorest v11.2.3+incompatible // indirect
+	github.com/Showmax/go-fqdn v0.0.0-20180501083314-6f60894d629f
 	github.com/alecthomas/gometalinter v2.0.12+incompatible // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/aws/aws-sdk-go v1.16.26 // indirect
