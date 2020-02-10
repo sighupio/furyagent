@@ -26,8 +26,8 @@ import (
 	"go.etcd.io/etcd/clientv3/snapshot"
 	"go.etcd.io/etcd/pkg/transport"
 	"go.uber.org/zap"
-	certutil "k8s.io/client-go/util/cert"
-	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
+	"k8s.io/client-go/util/keyutil"
+	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
 )
 
 const (
@@ -137,13 +137,17 @@ func (e Etcd) Configure(overwrite bool) error {
 }
 
 func (e Etcd) Init(dir string) error {
-	ca, privateKey, err := pki.NewCertificateAuthority(&CertConfig)
+	ca, privateKey, err := pkiutil.NewCertificateAuthority(&CertConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	privateKeyPEM, err := keyutil.MarshalPrivateKeyToPEM(privateKey)
 	if err != nil {
 		log.Fatal(err)
 	}
 	certs := map[string][]byte{
-		EtcdCaCrt: certutil.EncodeCertPEM(ca),
-		EtcdCaKey: certutil.EncodePrivateKeyPEM(privateKey),
+		EtcdCaCrt: pkiutil.EncodeCertPEM(ca),
+		EtcdCaKey: privateKeyPEM,
 	}
 	log.Printf("Writing files to: %s ", etcdPath)
 	return e.UploadFilesFromMemory(certs, etcdPath)

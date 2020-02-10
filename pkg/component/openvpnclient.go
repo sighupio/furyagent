@@ -13,7 +13,7 @@ import (
 	"time"
 
 	certutil "k8s.io/client-go/util/cert"
-	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
+	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
 )
 
 const (
@@ -107,7 +107,7 @@ func (o OpenVPNClient) Init(dir string) error {
 }
 
 func (o OpenVPNClient) createClientCertificates(username, path string) error {
-	caCert, caKey, err := pki.TryLoadCertAndKeyFromDisk(path, "ca")
+	caCert, caKey, err := pkiutil.TryLoadCertAndKeyFromDisk(path, "ca")
 	if err != nil {
 		return err
 	}
@@ -118,16 +118,16 @@ func (o OpenVPNClient) createClientCertificates(username, path string) error {
 		Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
 
-	clientCert, clientKey, err := pki.NewCertAndKey(caCert, caKey, &clientCertConfig)
+	clientCert, clientKey, err := pkiutil.NewCertAndKey(caCert, caKey, &clientCertConfig)
 	if err != nil {
 		return err
 	}
-	err = pki.WriteCertAndKey(path, "client", clientCert, clientKey)
+	err = pkiutil.WriteCertAndKey(path, "client", clientCert, clientKey)
 	if err != nil {
 		return err
 	}
 	files := map[string][]byte{
-		username + ".crt": certutil.EncodeCertPEM(clientCert),
+		username + ".crt": pkiutil.EncodeCertPEM(clientCert),
 	}
 	if err = o.UploadFilesFromMemory(files, OpenVPNClientPath); err != nil {
 		return err

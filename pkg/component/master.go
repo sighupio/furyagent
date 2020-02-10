@@ -17,8 +17,8 @@ package component
 import (
 	"log"
 
-	certutil "k8s.io/client-go/util/cert"
-	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
+	"k8s.io/client-go/util/keyutil"
+	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
 )
 
 const (
@@ -67,25 +67,37 @@ func (m Master) Configure(overwrite bool) error {
 
 func (m Master) Init(dir string) error {
 	// remove, create and download new certs
-	caCert, caKey, err := pki.NewCertificateAuthority(&CertConfig)
+	caCert, caKey, err := pkiutil.NewCertificateAuthority(&CertConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
-	saCert, saKey, err := pki.NewCertificateAuthority(&CertConfig)
+	saCert, saKey, err := pkiutil.NewCertificateAuthority(&CertConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fpCert, fpKey, err := pki.NewCertificateAuthority(&CertConfig)
+	fpCert, fpKey, err := pkiutil.NewCertificateAuthority(&CertConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	masterCAKeyPEM, err := keyutil.MarshalPrivateKeyToPEM(caKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	masterSAKeyPEM, err := keyutil.MarshalPrivateKeyToPEM(saKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	masterFProxyKeyPEM, err := keyutil.MarshalPrivateKeyToPEM(fpKey)
 	if err != nil {
 		log.Fatal(err)
 	}
 	certs := map[string][]byte{
-		MasterCaCrt:     certutil.EncodeCertPEM(caCert),
-		MasterCaKey:     certutil.EncodePrivateKeyPEM(caKey),
-		MasterSaPub:     certutil.EncodeCertPEM(saCert),
-		MasterSaKey:     certutil.EncodePrivateKeyPEM(saKey),
-		MasterFProxyCrt: certutil.EncodeCertPEM(fpCert),
-		MasterFProxyKey: certutil.EncodePrivateKeyPEM(fpKey),
+		MasterCaCrt:     pkiutil.EncodeCertPEM(caCert),
+		MasterCaKey:     masterCAKeyPEM,
+		MasterSaPub:     pkiutil.EncodeCertPEM(saCert),
+		MasterSaKey:     masterSAKeyPEM,
+		MasterFProxyCrt: pkiutil.EncodeCertPEM(fpCert),
+		MasterFProxyKey: masterFProxyKeyPEM,
 	}
 	log.Printf("Writing files to %s ", masterPath)
 	return m.UploadFilesFromMemory(certs, masterPath)

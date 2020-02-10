@@ -14,8 +14,8 @@ import (
 	"os/exec"
 	"time"
 
-	certutil "k8s.io/client-go/util/cert"
-	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
+	"k8s.io/client-go/util/keyutil"
+	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
 )
 
 const (
@@ -96,7 +96,7 @@ func (o OpenVPN) Init(dir string) error {
 		return err
 	}
 
-	serverCert, serverKey, err := pki.NewCertAndKey(ca, privateKey, &CertConfig)
+	serverCert, serverKey, err := pkiutil.NewCertAndKey(ca, privateKey, &CertConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -106,11 +106,21 @@ func (o OpenVPN) Init(dir string) error {
 		log.Fatal(err)
 	}
 
+	caKeyPEM, err := keyutil.MarshalPrivateKeyToPEM(privateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	serverKeyPEM, err := keyutil.MarshalPrivateKeyToPEM(serverKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	certs := map[string][]byte{
-		OpenVPNCaCert:     certutil.EncodeCertPEM(ca),
-		OpenVPNCaKey:      certutil.EncodePrivateKeyPEM(privateKey),
-		OpenVPNServerCert: certutil.EncodeCertPEM(serverCert),
-		OpenVPNServerKey:  certutil.EncodePrivateKeyPEM(serverKey),
+		OpenVPNCaCert:     pkiutil.EncodeCertPEM(ca),
+		OpenVPNCaKey:      caKeyPEM,
+		OpenVPNServerCert: pkiutil.EncodeCertPEM(serverCert),
+		OpenVPNServerKey:  serverKeyPEM,
 		OpenVPNCRL:        crlBuffer.Bytes(),
 		OpenVPNTaKey:      taKeyData,
 	}
