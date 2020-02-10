@@ -16,6 +16,7 @@ package component
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os/exec"
 	"path"
@@ -98,11 +99,12 @@ func (b BackoffNode) executeCommand() error {
 		return err
 	}
 	cmd := exec.Command("bash", path.Join(LocalJoinFilePath, JoinFile))
-	var output bytes.Buffer
-	cmd.Stdout = &output
+	output := new(bytes.Buffer)
+	cmd.Stdout = output
+	cmd.Stderr = output
 	err = cmd.Run()
 	if err != nil {
-		return err
+		return fmt.Errorf("error: %v, output: %s\n", err, output.String())
 	}
 	return nil
 }
