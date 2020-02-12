@@ -45,6 +45,20 @@ var masterConfigCmd = &cobra.Command{
 	},
 }
 
+// NodeConfigureCmd represents the `furyagent configure node` command
+var NodeConfigureCmd = &cobra.Command{
+	Use:   "node",
+	Short: "Get join.sh script from s3 and execute the join process",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		var node component.ClusterComponent = component.Node{data}
+		err := node.Configure(overwrite)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 // openVPNConfigureCmd represents the `furyagent configure openvpn` command
 var openVPNConfigCmd = &cobra.Command{
 	Use:   "openvpn",
@@ -91,6 +105,7 @@ func init() {
 	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite config files (default is `false`)")
 	configureCmd.AddCommand(etcdConfigCmd)
 	configureCmd.AddCommand(masterConfigCmd)
+	configureCmd.AddCommand(NodeConfigureCmd)
 	configureCmd.AddCommand(openVPNConfigCmd)
 	configureCmd.AddCommand(openVPNClientConfigCmd)
 	configureCmd.AddCommand(SSHKeysConfigCmd)

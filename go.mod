@@ -4,12 +4,13 @@ require (
 	contrib.go.opencensus.io/exporter/ocagent v0.3.0 // indirect
 	github.com/Azure/azure-sdk-for-go v21.3.0+incompatible // indirect
 	github.com/Azure/go-autorest v11.2.3+incompatible // indirect
+	github.com/Showmax/go-fqdn v0.0.0-20180501083314-6f60894d629f // indirect
 	github.com/alecthomas/gometalinter v2.0.12+incompatible // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/araddon/gou v0.0.0-20190110011759-c797efecbb61 // indirect
 	github.com/aws/aws-sdk-go v1.16.26
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
-	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
+	github.com/cenkalti/backoff/v4 v4.0.0
 	github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea // indirect
 	github.com/cosiner/argv v0.0.1 // indirect
 	github.com/davidrjenni/reftools v0.0.0-20180914123528-654d0ba4f96d // indirect

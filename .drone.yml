@@ -3,9 +3,16 @@ kind: pipeline
 name: test
 
 steps:
+  - name: fetch
+    image: docker:git
+    commands:
+      - git fetch --tags
+
   - name: lint
     image: golang
     pull: always
+    depends_on:
+      - fetch
     commands:
       - find . -name "*.go" | xargs gofmt -s -d
       #- go vet ./...
@@ -71,37 +78,22 @@ steps:
       - go build -a -ldflags '-extldflags "-static"' -o bin/releases/furyagent-linux-amd64  .
     when:
       event:
-        - tag
+        - push
 
-  - name: build-darwin
-    group: build-to-release
-    image: golang
+  - name: build-release-homebrew
+    image: goreleaser/goreleaser:v0.124
     pull: always
     depends_on:
-      - go-mod-vendor
+      - lint
+      - fetch
     environment:
-      GOOS: darwin
-      GOARCH: amd64
-      CGO_ENABLED: 0
+      GITHUB_TOKEN:
+        from_secret: GITHUB_TOKEN
+    secrets:
+      - GITHUB_TOKEN
     commands:
-      - go build -a -ldflags '-extldflags "-static"' -o bin/releases/furyagent-darwin-amd64 .
+      - goreleaser check
+      - goreleaser --debug
     when:
       event:
         - tag
-
-  - name: release
-    image: plugins/github-release
-    pull: always
-    environment:
-    depends_on:
-      - build-linux
-      - build-darwin
-    settings:
-      api_key:
-        from_secret: GITHUB_TOKEN
-      files:
-        - bin/releases/*
-      checksum:
-        - sha256
-    when:
-      event: tag
