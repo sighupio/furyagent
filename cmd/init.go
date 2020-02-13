@@ -55,6 +55,19 @@ var openVpnInitCmd = &cobra.Command{
 	},
 }
 
+var sshKeysInitCmd = &cobra.Command{
+	Use:   "ssh-keys",
+	Short: "upload ssh to s3",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		var ssh component.ClusterComponent = component.SSHComponent{data}
+		err := ssh.Init(initDir)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.PersistentFlags().StringVarP(&initDir, "directory", "d", ".", "directory with files to be uploaded (default is .)")
@@ -62,4 +75,5 @@ func init() {
 	initCmd.AddCommand(etcdInitCmd)
 	initCmd.AddCommand(masterInitCmd)
 	initCmd.AddCommand(openVpnInitCmd)
+	initCmd.AddCommand(sshKeysInitCmd)
 }

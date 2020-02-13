@@ -7,6 +7,7 @@ require (
 	github.com/Showmax/go-fqdn v0.0.0-20180501083314-6f60894d629f // indirect
 	github.com/alecthomas/gometalinter v2.0.12+incompatible // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
+	github.com/araddon/gou v0.0.0-20190110011759-c797efecbb61 // indirect
 	github.com/aws/aws-sdk-go v1.16.26 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/cenkalti/backoff/v4 v4.0.0
@@ -33,6 +34,7 @@ require (
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/klauspost/asmfmt v1.2.0 // indirect
 	github.com/koron/iferr v0.0.0-20180615142939-bb332a3b1d91 // indirect
+	github.com/lytics/cloudstorage v0.2.2 // indirect
 	github.com/marstr/guid v1.1.0 // indirect
 	github.com/mdempsky/gocode v0.0.0-20181226182234-be056ad32a5e // indirect
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
@@ -42,6 +44,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/ncw/swift v1.0.42 // indirect
 	github.com/nicksnyder/go-i18n v1.10.0 // indirect
+	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c // indirect
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
@@ -66,6 +69,7 @@ require (
 	google.golang.org/genproto v0.0.0-20181004005441-af9cb2a35e7f // indirect
 	gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20180810215634-df19058c872c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
+	gopkg.in/yaml.v2 v2.2.1
 	honnef.co/go/tools v0.0.0-20190128043916-71123fcbb8fe // indirect
 	k8s.io/api v0.0.0-20181018013834-843ad2d9b9ae // indirect
 	k8s.io/apimachinery v0.0.0-20181015213631-60666be32c5d // indirect

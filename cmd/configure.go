@@ -87,6 +87,19 @@ var openVPNClientConfigCmd = &cobra.Command{
 	},
 }
 
+var SSHKeysConfigCmd = &cobra.Command{
+	Use:   "ssh-keys",
+	Short: "Setup ssh keys from s3",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		var ssh component.ClusterComponent = component.SSHComponent{data}
+		err := ssh.Configure(overwrite)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configureCmd)
 	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite config files (default is `false`)")
@@ -95,4 +108,5 @@ func init() {
 	configureCmd.AddCommand(NodeConfigureCmd)
 	configureCmd.AddCommand(openVPNConfigCmd)
 	configureCmd.AddCommand(openVPNClientConfigCmd)
+	configureCmd.AddCommand(SSHKeysConfigCmd)
 }
