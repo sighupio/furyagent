@@ -1,11 +1,13 @@
 # Furyagent
 
 ## Install
-You can find `furyagent` binaries on the [Releases page](https://github.com/sighup-io/furyagent/releases). 
+
+You can find `furyagent` binaries on the [Releases page](https://github.com/sighup-io/furyagent/releases).
 
 Supported architectures are (64 bit):
-- `linux`
-- `darwin`
+
+-   `linux`
+-   `darwin`
 
 Download right binary for your architecture and add it to your PATH. Assuming it's downloaded in your
 `~/Downloads` folder, you can run following commands (replacing `{arch}` with your architecture):
@@ -116,3 +118,53 @@ S3 bucket
 ```
 
 For ARK volume backup using restic backup is necessary a different bucket then this one.
+
+
+### SSH management
+
+In order to enable this feature, you have to add this configuration to the `furyagent.yml` file
+
+```yaml
+clusterComponent:
+    sshKeys:
+        adapter:
+            name: "github"  # you can use also "http" as adapter  name but you'll need to specify also the "uri" field as well because `non github` adapter is not well known 
+        user: "sighup" # the user that will be created on the system for storing public keys
+        tempDir: "/tmp" # the temp dir that will be used to put the downloaded file
+        localDirConfigs: "secrets/ssh" # where the code will look for searching the file ssh-users.yml
+```
+
+
+`ssh-users.yml` should have the following structure:
+
+```yaml
+users:
+    - name: lucazecca
+      github_id: lzecca78
+    - name: philippe
+      github_id: phisco
+    - name: samuele
+      github_id: nutellinoit
+    - name: lucanovara
+      github_id: lnovara
+```
+
+once do that, all you have to do is 
+
+to put the `ssh-users.yml` on the bucket s3:
+
+`furyagent init --config ssh/furyagent.yml ssh-keys`
+
+on the nodes, just create a cron entry like the following:
+
+`*/30 * * * * furyagent configure --config <path>/furyagent.yml ssh-keys --overwrite true`
+
+And it will do the following actions: 
+
+1. fetch the ssh-users.yml from s3 bucket
+2. get the adapter from furyagent.yml (github doesn't require uri, because is well known, http require also a uri field to be put in the adapter struct )
+3. once get the adapter (name, uri) it will fetch from it the same github structure: so 1 file.keys for each user
+4. create the system user (if doesn't exist) checking on which os is launched (redhat bases, debian based) in order to use the correct command flags
+5. create a temporary authorized_keys
+6. if the step 3 goes well, it will override the authorized_keys file of the user, otherwise it won't
+of course the steps 4 is be ignored if the user already exists
