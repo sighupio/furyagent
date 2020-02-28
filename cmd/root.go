@@ -57,7 +57,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(printParsedConfig)
-	rootCmd.AddCommand(printDefaultCmd)
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -87,16 +86,6 @@ var versionCmd = &cobra.Command{
 		filename, _ := os.Executable()
 		data, _ := ioutil.ReadFile(filename)
 		fmt.Printf("Furyagent version %v - md5: %x - %s \n", FuryagentVersion, md5.Sum(data), filename)
-	},
-}
-
-// printDefaultCmd represents the printDefault command
-var printDefaultCmd = &cobra.Command{
-	Use:   "printDefault",
-	Short: "Prints a basic Furyfile used to generate an INFRA project",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println(InitFuryfile)
 	},
 }
 

@@ -25,7 +25,6 @@ Available Commands:
   help          Help about any command
   init          Executes initialization, uploads ca files
   parsed-config Prints the parsed furyagent.yaml file
-  printDefault  Prints a basic Furyfile used to generate an INFRA project
   restore       Executes restores
   version       Prints the client version information
 Flags:
