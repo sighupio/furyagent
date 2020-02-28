@@ -54,7 +54,7 @@ func getConfig(cfgFile string) (*AgentConfig, *storage.Data) {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file path")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(printParsedConfig)
 }
