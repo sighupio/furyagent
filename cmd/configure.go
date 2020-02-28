@@ -87,6 +87,7 @@ var openVPNClientConfigCmd = &cobra.Command{
 	},
 }
 
+// SSHKeysConfigCmd represents the `furyagent configure ssh-keys` command
 var SSHKeysConfigCmd = &cobra.Command{
 	Use:   "ssh-keys",
 	Short: "Setup ssh keys from s3",

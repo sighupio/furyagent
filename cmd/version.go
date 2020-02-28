@@ -14,5 +14,5 @@
 
 package cmd
 
-// FuryctlVersion is the version of the client
-const FuryagentVersion = "0.0.3"
+// FuryagentVersion is the version of the client
+const FuryagentVersion = "0.0.10"

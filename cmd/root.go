@@ -54,8 +54,6 @@ func getConfig(cfgFile string) (*AgentConfig, *storage.Data) {
 }
 
 func init() {
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.furyctl.yaml)")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(printParsedConfig)
@@ -68,6 +66,10 @@ var rootCmd = &cobra.Command{
 	Short: "A command line tool to manage cluster deployment with kubernetes",
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Otherwise we break the help command
+		if cmd.Name() == "help" {
+			return
+		}
 		agentConfig, store = getConfig(cfgFile)
 		data = component.ClusterComponentData{&agentConfig.ClusterComponent, store}
 	},
@@ -78,6 +80,9 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the client version information",
 	Long:  ``,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		return
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filename, _ := os.Executable()
 		data, _ := ioutil.ReadFile(filename)
