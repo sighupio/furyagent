@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// backupCmd represents the `furyctl backup` command
+// configureCmd represents the `furyctl configure` command
 var configureCmd = &cobra.Command{
 	Use:   "configure",
 	Short: "Executes configuration",
@@ -16,8 +16,9 @@ var configureCmd = &cobra.Command{
 
 var overwrite bool
 var revoke bool
+var clientName string
 
-// etcdBackupCmd represents the `furyctl backup etcd` command
+// etcdConfigCmd represents the `furyctl configiure etcd` command
 var etcdConfigCmd = &cobra.Command{
 	Use:   "etcd",
 	Short: "Configures etcd node",
@@ -32,7 +33,7 @@ var etcdConfigCmd = &cobra.Command{
 	},
 }
 
-// masterBackupCmd represents the `furyctl backup master` command
+// masterConfigCmd represents the `furyctl configure master` command
 var masterConfigCmd = &cobra.Command{
 	Use:   "master",
 	Short: "Configures master node",
@@ -74,14 +75,19 @@ var openVPNConfigCmd = &cobra.Command{
 	},
 }
 
-// openVPNConfigureCmd represents the `furyagent configure openvpn` command
+// openVPNClientConfigureCmd represents the `furyagent configure openvpn-client` command
 var openVPNClientConfigCmd = &cobra.Command{
 	Use:   "openvpn-client",
 	Short: "Get OpenVPN users client from s3",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		var openvpn component.OpenVPNClient = component.OpenVPNClient{data}
-		err := openvpn.Configure(overwrite, revoke)
+		var err error
+		var openvpnClient component.OpenVPNClient = component.OpenVPNClient{data}
+		if revoke {
+			err = openvpnClient.RevokeUser(clientName)
+		} else {
+			err = openvpnClient.CreateUser(clientName)
+		}
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -104,12 +110,14 @@ var SSHKeysConfigCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(configureCmd)
-	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite config files (default is `false`)")
+	configureCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite config files")
 	configureCmd.AddCommand(etcdConfigCmd)
 	configureCmd.AddCommand(masterConfigCmd)
 	configureCmd.AddCommand(NodeConfigureCmd)
 	configureCmd.AddCommand(openVPNConfigCmd)
 	configureCmd.AddCommand(openVPNClientConfigCmd)
 	configureCmd.AddCommand(SSHKeysConfigCmd)
-	openVPNClientConfigCmd.PersistentFlags().BoolVar(&revoke, "revoke", false, "revoke client certificate (default is `false`)")
+	openVPNClientConfigCmd.PersistentFlags().BoolVar(&revoke, "revoke", false, "revoke client certificate")
+	openVPNClientConfigCmd.PersistentFlags().StringVar(&clientName, "client-name", clientName, "The name of the user. It will be used as the CN of the client certificate")
+	openVPNClientConfigCmd.MarkFlagRequired("client-name")
 }

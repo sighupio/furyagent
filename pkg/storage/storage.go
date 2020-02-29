@@ -193,6 +193,23 @@ func (s *Data) Remove(filename string) error {
 	return s.container.RemoveItem(filename)
 }
 
+// Move moves the file from its current location to the given path
+func (s *Data) Move(filename, src, dest string) error {
+	files, err := s.DownloadFilesToMemory([]string{filename}, src)
+	if err != nil {
+		return err
+	}
+	err = s.UploadFilesFromMemory(files, dest)
+	if err != nil {
+		return err
+	}
+	err = s.Remove(filepath.Join(src, filename))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Data) UploadFile(filename, localPath string) error {
 	log.Printf("uploading %s to %s", localPath, filename)
 	fileSize, err := FileSize(localPath)
