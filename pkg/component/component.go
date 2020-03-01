@@ -94,7 +94,8 @@ type BackupConfig struct {
 }
 
 type OpenVPNConfig struct {
-	CertDir string `mapstructure:"certDir"`
+	CertDir string   `mapstructure:"certDir"`
+	Servers []string `mapstructure:"servers"`
 }
 
 type SSHConfig struct {
