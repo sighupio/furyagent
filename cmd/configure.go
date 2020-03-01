@@ -18,7 +18,7 @@ var overwrite bool
 var revoke bool
 var clientName string
 
-// etcdConfigCmd represents the `furyctl configiure etcd` command
+// etcdConfigCmd represents the `furyctl configure etcd` command
 var etcdConfigCmd = &cobra.Command{
 	Use:   "etcd",
 	Short: "Configures etcd node",
