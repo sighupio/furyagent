@@ -156,6 +156,12 @@ func (s *Data) Download(filename string, obj io.WriteCloser) error {
 	return nil
 }
 
+// Exists is the single interface to check for file existence from Object Storage
+func (s *Data) Exists(filename string) bool {
+	_, err := s.container.Item(filename)
+	return err == nil
+}
+
 // Upload is the single interface to upload something to Object Storage
 func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 	//upload snapshot to container with given name
