@@ -30,6 +30,11 @@ import (
 var cfgFile string
 var store *storage.Data
 var agentConfig *AgentConfig
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 
 // Execute is the main entrypoint of furyctl
 func Execute() {
@@ -85,7 +90,7 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		filename, _ := os.Executable()
 		data, _ := ioutil.ReadFile(filename)
-		fmt.Printf("Furyagent version %v - md5: %x - %s \n", FuryagentVersion, md5.Sum(data), filename)
+		fmt.Printf("Furyagent version %v - md5: %x - %s \n", version, md5.Sum(data), filename)
 	},
 }
 

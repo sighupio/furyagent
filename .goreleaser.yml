@@ -12,6 +12,8 @@ builds:
       - darwin
     env:
       - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/sighupio/furyagent/cmd.version={{.Version}} -X github.com/sighupio/furyagent/cmd.commit={{.Commit}} -X github.com/sighupio/furyagent/cmd.date={{.Date}}
   - binary: 'furyagent'
     id: furyagent-linux
     goarch:
@@ -20,6 +22,8 @@ builds:
       - linux
     env:
       - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/sighupio/furyagent/cmd.version={{.Version}} -X github.com/sighupio/furyagent/cmd.commit={{.Commit}} -X github.com/sighupio/furyagent/cmd.date={{.Date}}
 archives:
   - format: tar.gz
     id: furyagent-darwin-tgz
