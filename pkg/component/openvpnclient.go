@@ -42,10 +42,10 @@ auth SHA512
 resolv-retry infinite
 auth-retry none
 nobind
+key-direction 1
 persist-key
 persist-tun
-ns-cert-type server
-comp-lzo
+compress lzo
 verb 3
 tls-client
 
@@ -61,8 +61,8 @@ tls-client
 <key>
 {{ .ClientKey }}</key>
 
-<tls_auth>
-{{ .TLSAuthKey }}</tls_auth>
+<tls-auth>
+{{ .TLSAuthKey }}</tls-auth>
 `
 )
 
