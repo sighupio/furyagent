@@ -7,6 +7,8 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -77,6 +79,9 @@ func (o OpenVPNClient) getFileMappings() [][]string {
 }
 
 func (o OpenVPNClient) CreateUser(clientName string) error {
+	if o.Exists(filepath.Join(OpenVPNClientPath, clientName+".crt")) {
+		return errors.New(fmt.Sprintf("client certificate for %s already exists", clientName))
+	}
 	filenames := []string{
 		OpenVPNCaCert,
 		OpenVPNCaKey,
