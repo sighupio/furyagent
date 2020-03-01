@@ -100,20 +100,20 @@ func (o OpenVPNClient) CreateUser(clientName string) error {
 		TLSAuthKey string
 	}
 	clientConfig := openVPNClientConfig{
-		Server:     []string{"server1", "server2"},
+		Server:     o.OpenVPN.Servers,
 		CACert:     string(files[OpenVPNCaCert]),
 		ClientCert: string(clientCert[clientName+".crt"]),
 		ClientKey:  string(clientCert[clientName+".key"]),
 		TLSAuthKey: string(files[OpenVPNTaKey]),
 	}
-	t := template.Must(template.New("openVPNClientConfig").Parse(openVPNClientConfigTmpl))
-	err = t.Execute(os.Stdout, clientConfig)
-	if err != nil {
-		return err
-	}
 	delete(clientCert, clientName+".key")
 	log.Println("Uploading client cert for: ", clientName)
 	if err = o.UploadFilesFromMemory(clientCert, OpenVPNClientPath); err != nil {
+		return err
+	}
+	t := template.Must(template.New("openVPNClientConfig").Parse(openVPNClientConfigTmpl))
+	err = t.Execute(os.Stdout, clientConfig)
+	if err != nil {
 		return err
 	}
 	return nil
