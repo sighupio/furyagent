@@ -16,6 +16,13 @@ Download right binary for your architecture and add it to your PATH. Assuming it
 chmod +x  ~/Downloads/furyagent-{arch}-amd64 && mv ~/Downloads/furyagent-{arch}-amd64 /usr/local/bin/furyagent
 ```
 
+If you are using MacOS you can also install `furyagent` using the `brew` package manager:
+
+```shell
+brew tap sighupio/furyagent
+brew install furyagent
+```
+
 ## Usage
 
 ```shell
