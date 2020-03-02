@@ -1,10 +1,18 @@
 package component
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"os"
 	"os/exec"
+	"time"
 
 	certutil "k8s.io/client-go/util/cert"
 	pki "k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
@@ -15,6 +23,7 @@ const (
 	OpenVPNServerKey  = "server.key"
 	OpenVPNCaCert     = "ca.crt"
 	OpenVPNCaKey      = "ca.key"
+	OpenVPNCRL        = "ca.crl"
 	OpenVPNTaKey      = "ta.key"
 	OpenVPNPath       = "pki/vpn"
 )
@@ -37,6 +46,7 @@ func (o OpenVPN) getFileMappings() [][]string {
 		[]string{OpenVPNServerCert, OpenVPNServerCert},
 		[]string{OpenVPNCaKey, OpenVPNCaKey},
 		[]string{OpenVPNCaCert, OpenVPNCaCert},
+		[]string{OpenVPNCRL, OpenVPNCRL},
 		[]string{OpenVPNTaKey, OpenVPNTaKey},
 	}
 }
@@ -47,9 +57,43 @@ func (o OpenVPN) Configure(overwrite bool) error {
 }
 
 func (o OpenVPN) Init(dir string) error {
-	ca, privateKey, err := pki.NewCertificateAuthority(&CertConfig)
+	now := time.Now()
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		log.Fatal(err)
+	}
+	tmpl := x509.Certificate{
+		SerialNumber: new(big.Int).SetInt64(0),
+		Subject: pkix.Name{
+			CommonName:   "openvpn",
+			Organization: []string{"SIGHUP s.r.l."},
+		},
+		NotBefore:             now.UTC(),
+		NotAfter:              now.Add(time.Hour * 24 * 365 * 10).UTC(),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+	caDERBytes, err := x509.CreateCertificate(rand.Reader, &tmpl, &tmpl, privateKey.Public(), privateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ca, err := x509.ParseCertificate(caDERBytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	crl, err := ca.CreateCRL(rand.Reader, privateKey, []pkix.RevokedCertificate{}, now, now.AddDate(10, 0, 0).UTC())
+	if err != nil {
+		return err
+	}
+	crlPEMBlock := &pem.Block{
+		Type:  "X509 CRL",
+		Bytes: crl,
+	}
+	crlBuffer := new(bytes.Buffer)
+	if err = pem.Encode(crlBuffer, crlPEMBlock); err != nil {
+		return err
 	}
 
 	serverCert, serverKey, err := pki.NewCertAndKey(ca, privateKey, &CertConfig)
@@ -67,6 +111,7 @@ func (o OpenVPN) Init(dir string) error {
 		OpenVPNCaKey:      certutil.EncodePrivateKeyPEM(privateKey),
 		OpenVPNServerCert: certutil.EncodeCertPEM(serverCert),
 		OpenVPNServerKey:  certutil.EncodePrivateKeyPEM(serverKey),
+		OpenVPNCRL:        crlBuffer.Bytes(),
 		OpenVPNTaKey:      taKeyData,
 	}
 	if err = o.UploadFilesFromMemory(certs, OpenVPNPath); err != nil {
@@ -88,10 +133,6 @@ func getTaKey() ([]byte, error) {
 		return nil, err
 	}
 	data, err := ioutil.ReadFile(tmpfile.Name())
-
-	// fmt.Println("Temporary file is: ", tmpfile.Name())
-
-	// fmt.Println("With content: ", string(data))
 
 	return data, nil
 }

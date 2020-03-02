@@ -30,6 +30,18 @@ import (
 	"github.com/graymeta/stow/s3"
 )
 
+type bufferWriteCloser struct {
+	Buf *bytes.Buffer
+}
+
+func (bwc bufferWriteCloser) Write(p []byte) (n int, err error) {
+	return bwc.Buf.Write(p)
+}
+
+func (bwc bufferWriteCloser) Close() error {
+	return nil
+}
+
 // Data represent where to put whatever you're downloading
 type Data struct {
 	location      stow.Location
@@ -144,6 +156,12 @@ func (s *Data) Download(filename string, obj io.WriteCloser) error {
 	return nil
 }
 
+// Exists is the single interface to check for file existence from Object Storage
+func (s *Data) Exists(filename string) bool {
+	_, err := s.container.Item(filename)
+	return err == nil
+}
+
 // Upload is the single interface to upload something to Object Storage
 func (s *Data) Upload(filename string, size int64, obj io.ReadCloser) error {
 	//upload snapshot to container with given name
@@ -170,6 +188,28 @@ func (s *Data) UploadForce(filename string, size int64, obj io.ReadCloser) error
 		return err
 	}
 	log.Println("Item URL: ", item.URL())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Remove removes the filename with the given path
+func (s *Data) Remove(filename string) error {
+	return s.container.RemoveItem(filename)
+}
+
+// Move moves the file from its current location to the given path
+func (s *Data) Move(filename, src, dest string) error {
+	files, err := s.DownloadFilesToMemory([]string{filename}, src)
+	if err != nil {
+		return err
+	}
+	err = s.UploadFilesFromMemory(files, dest)
+	if err != nil {
+		return err
+	}
+	err = s.Remove(filepath.Join(src, filename))
 	if err != nil {
 		return err
 	}
@@ -261,4 +301,22 @@ func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, f
 		}
 	}
 	return nil
+}
+
+func (store *Data) DownloadFilesToMemory(files []string, fromPath string) (map[string][]byte, error) {
+	out := make(map[string][]byte)
+	for _, fn := range files {
+		bwc := bufferWriteCloser{new(bytes.Buffer)}
+		err := store.Download(filepath.Join(fromPath, fn), bwc)
+		if err != nil {
+			return nil, err
+		}
+		fileContent := make([]byte, bwc.Buf.Len())
+		_, err = bwc.Buf.Read(fileContent)
+		if err != nil {
+			return nil, err
+		}
+		out[fn] = fileContent
+	}
+	return out, nil
 }

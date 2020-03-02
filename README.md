@@ -41,16 +41,21 @@ Flags:
 furyagent
 ├── init
 │   ├── etcd
-│   ├── openVPN
-│   └── master
+│   ├── master
+│   ├── openvpn
+│   └── ssh-keys
 ├── configure
 │   ├── etcd
-│   ├── openVPN
-│   └── master
+│   ├── master
+│   ├── openvpn
+│   ├── openvpn-client
+│   └── ssh-keys
 ├── backup
-│   └── etcd
+│   ├── etcd
+│   └── master
 └── restore
-    └── etcd
+    ├── etcd
+    └── master
 ```
 
 ## Workflow
@@ -124,6 +129,32 @@ S3 bucket
 ```
 
 For ARK volume backup using restic backup is necessary a different bucket then this one.
+
+### OpenVPN users management
+
+In order to enable this feature, add the following configuration to the
+`furyagent.yml` file:
+```yaml
+clusterComponent:
+  openvpn:
+    server:
+      - 1.2.3.4
+      - 5.6.7.8
+```
+then you can create an OpenVPN client configuration with the following command:
+```shell
+furyagent configure openvpn-client --client-name foo --config /etc/fury/furyagent.yml > foo.ovpn
+```
+the newly created client certificate is saved to the object storage to keep
+track of all the certificates issued by the OpenVPN CA in case of revocation.
+
+The resulting `*.ovpn` file can be fed to any OpenVPN client (such as
+Tunnelblick) to connect to the OpenVPN server.
+
+If you need to revoke access to any user, you can do it with the following command:
+```shell
+furyagent config openvpn-client --client-name foo --revoke --config /etc/fury/furyagent.yml
+```
 
 ### SSH management
 
