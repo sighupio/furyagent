@@ -141,7 +141,7 @@ clusterComponent:
       - 1.2.3.4
       - 5.6.7.8
 ```
-than you can create an OpenVPN client configuration with the following command:
+then you can create an OpenVPN client configuration with the following command:
 ```shell
 furyagent configure openvpn-client --client-name foo --config /etc/fury/furyagent.yml > foo.ovpn
 ```
