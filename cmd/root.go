@@ -30,6 +30,11 @@ import (
 var cfgFile string
 var store *storage.Data
 var agentConfig *AgentConfig
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 
 // Execute is the main entrypoint of furyctl
 func Execute() {
@@ -54,12 +59,9 @@ func getConfig(cfgFile string) (*AgentConfig, *storage.Data) {
 }
 
 func init() {
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.furyctl.yaml)")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file (default is `furyagent.yaml`)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "furyagent.yml", "config file path")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(printParsedConfig)
-	rootCmd.AddCommand(printDefaultCmd)
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -68,6 +70,10 @@ var rootCmd = &cobra.Command{
 	Short: "A command line tool to manage cluster deployment with kubernetes",
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Otherwise we break the help command
+		if cmd.Name() == "help" {
+			return
+		}
 		agentConfig, store = getConfig(cfgFile)
 		data = component.ClusterComponentData{&agentConfig.ClusterComponent, store}
 	},
@@ -78,20 +84,13 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the client version information",
 	Long:  ``,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		return
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filename, _ := os.Executable()
 		data, _ := ioutil.ReadFile(filename)
-		fmt.Printf("Furyagent version %v - md5: %x - %s \n", FuryagentVersion, md5.Sum(data), filename)
-	},
-}
-
-// printDefaultCmd represents the printDefault command
-var printDefaultCmd = &cobra.Command{
-	Use:   "printDefault",
-	Short: "Prints a basic Furyfile used to generate an INFRA project",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println(InitFuryfile)
+		fmt.Printf("Furyagent version %v - md5: %x - %s \n", version, md5.Sum(data), filename)
 	},
 }
 
