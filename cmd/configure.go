@@ -78,7 +78,7 @@ var openVPNConfigCmd = &cobra.Command{
 // openVPNClientConfigureCmd represents the `furyagent configure openvpn-client` command
 var openVPNClientConfigCmd = &cobra.Command{
 	Use:   "openvpn-client",
-	Short: "Create and revocate OpenVPN users",
+	Short: "Create and revoke OpenVPN users",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
