@@ -28,18 +28,7 @@ var etcdRestoreCmd = &cobra.Command{
 	},
 }
 
-// masterBackupCmd represents the `furyctl restore master` command
-var masterRestoreCmd = &cobra.Command{
-	Use:   "master",
-	Short: "Restores master node",
-	Long:  `Restores master node`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-	},
-}
-
 func init() {
 	rootCmd.AddCommand(restoreCmd)
 	restoreCmd.AddCommand(etcdRestoreCmd)
-	restoreCmd.AddCommand(masterRestoreCmd)
 }
