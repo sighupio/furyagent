@@ -22,8 +22,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/sighup-io/furyagent/pkg/component"
-	"github.com/sighup-io/furyagent/pkg/storage"
+	"github.com/sighupio/furyagent/pkg/component"
+	"github.com/sighupio/furyagent/pkg/storage"
 	"github.com/spf13/cobra"
 )
 

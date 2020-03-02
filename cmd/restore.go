@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/sighup-io/furyagent/pkg/component"
-	"github.com/spf13/cobra"
 	"log"
+
+	"github.com/sighupio/furyagent/pkg/component"
+	"github.com/spf13/cobra"
 )
 
 // restoreCmd represents the `furyctl restore` subcommand

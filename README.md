@@ -2,7 +2,7 @@
 
 ## Install
 
-You can find `furyagent` binaries on the [Releases page](https://github.com/sighup-io/furyagent/releases).
+You can find `furyagent` binaries on the [Releases page](https://github.com/sighupio/furyagent/releases).
 
 Supported architectures are (64 bit):
 

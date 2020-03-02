@@ -1,4 +1,4 @@
-module github.com/sighup-io/furyagent
+module github.com/sighupio/furyagent
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.3.0 // indirect
