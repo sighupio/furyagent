@@ -66,7 +66,6 @@ type EtcdConfig struct {
 	SnapshotFile        string `mapstructure:"snapshotFile"`
 	ClientKeyFilename   string `mapstructure:"clientKeyFilename"`
 	Endpoint            string `mapstructure:"endpoint"`
-	BackupConfig
 }
 
 // MasterConfig is used to backup/restore/configure master nodes
@@ -78,19 +77,12 @@ type MasterConfig struct {
 	SaKeyFile        string `mapstructure:"saKeyFilename"`
 	ProxyCaCertFile  string `mapstructure:"proxyCaCertFilename"`
 	ProxyKeyCertFile string `mapstructure:"proxyKeyCertFilename"`
-	BackupConfig
 }
 
 // NodeConfig is used to backup/restore/configure worker nodes (backup and restore have an empty implementation right now)
 type NodeConfig struct {
 	CloudProvider string        `mapstructure:"caKeyFilename"`
 	joinTimeout   time.Duration `mapstructure:""joinTimeout`
-}
-
-// BackupConfig are used to generalyze backuconfiguration
-type BackupConfig struct {
-	BackupFrequency string `mapstructure:"backupFrequency"`
-	BackupRetention string `mapstructure:"backupRetention"`
 }
 
 type OpenVPNConfig struct {
