@@ -279,6 +279,7 @@ func (store *Data) UploadFilesFromMemory(files map[string][]byte, dir string) er
 		if _, err := store.container.Item(path); err == nil {
 			log.Fatalf("%s exists already", path)
 		}
+		log.Printf("uploading file %s from memory at path %s", filename, path)
 		if _, err := store.container.Put(path, ioutil.NopCloser(bytes.NewReader(file)), int64(len(file)), nil); err != nil {
 			log.Fatal(err)
 		}
