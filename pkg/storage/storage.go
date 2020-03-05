@@ -133,6 +133,13 @@ func (s *Data) Close() error {
 func (s *Data) Download(filename string, obj io.WriteCloser) error {
 	item, err := s.container.Item(filename)
 	if err == stow.ErrNotFound {
+		stow.Walk(s.container, "", 100, func(item stow.Item, err error) error {
+			log.Printf("%+v", item)
+			if err != nil {
+				log.Printf("got error %s", err.Error())
+			}
+			return err
+		})
 		return fmt.Errorf("Item %s not found", filename)
 	} else if err != nil {
 		return err
