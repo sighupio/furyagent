@@ -296,7 +296,7 @@ func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, f
 		bucketPath := filepath.Join(fromPath, remote)
 		err = store.Download(bucketPath, newFile)
 		if err != nil {
-			log.Println("no %s found in bucket", bucketPath)
+			log.Printf("no %s found in bucket", bucketPath)
 			return err
 		}
 	}
