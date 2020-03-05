@@ -283,6 +283,10 @@ func (store *Data) DownloadFilesToDirectory(files [][]string, localDir string, f
 	os.MkdirAll(localDir, 0750)
 	for _, fileSrcDst := range files {
 		local, remote := fileSrcDst[0], fileSrcDst[1]
+		// if local file name is not set, keep the original name
+		if local == "" {
+			local = remote
+		}
 		file := filepath.Join(localDir, local)
 		if overwrite {
 			os.Remove(file)
