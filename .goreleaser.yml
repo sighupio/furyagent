@@ -69,6 +69,7 @@ release:
     owner: sighupio
     name: furyagent
   name_template: '{{ .Tag }}'
+  prerelease: auto
 brews:
   - name: furyagent
     github:
