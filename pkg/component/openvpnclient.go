@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -84,13 +85,22 @@ type RevocationResponse struct {
 	RevokeTime time.Time
 }
 
-func (o OpenVPNClient) ListUserCertificates() error {
+type ListOutput struct {
+	User       string
+	Valid_from string
+	Valid_to   string
+	Expired    bool
+	Revoked    RevocationResponse
+}
+
+func (o OpenVPNClient) ListUserCertificates(output string) error {
 	s3files, err := o.List(OpenVPNClientPath)
 	if err != nil {
 		return err
 	}
 	data := [][]string{}
 	files, err := o.DownloadFilesToMemory(s3files, OpenVPNClientPath)
+	var jsonOutput ListOutput
 
 	for _, file := range files {
 		cpb, _ := pem.Decode(file)
@@ -124,15 +134,29 @@ func (o OpenVPNClient) ListUserCertificates() error {
 		revoke := getRevocationInfo(crt, crl.TBSCertList.RevokedCertificates)
 
 		data = append(data, []string{name, fmt.Sprintln(vf), fmt.Sprintln(vt), fmt.Sprintf("%v", expired), fmt.Sprintf("%v %v", revoke.Revoked, revoke.RevokeTime)})
+
+		jsonOutput = ListOutput{
+			User:       name,
+			Valid_from: vf,
+			Valid_to:   vt,
+			Expired:    expired,
+			Revoked:    revoke,
+		}
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"User", "Valid from", "Valid to", "Expired", "Revoked"})
-	table.SetRowLine(true)
-	for _, v := range data {
-		table.Append(v)
+	switch output {
+	case "json":
+		resp, _ := json.Marshal(jsonOutput)
+		fmt.Println(string(resp))
+	default:
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"User", "Valid from", "Valid to", "Expired", "Revoked"})
+		table.SetRowLine(true)
+		for _, v := range data {
+			table.Append(v)
+		}
+		table.Render()
 	}
-	table.Render()
 	return nil
 }
 
