@@ -101,6 +101,7 @@ func (o OpenVPNClient) ListUserCertificates(output string) error {
 	data := [][]string{}
 	files, err := o.DownloadFilesToMemory(s3files, OpenVPNClientPath)
 	var jsonOutput ListOutput
+	var jsonOutputs []ListOutput
 
 	for _, file := range files {
 		cpb, _ := pem.Decode(file)
@@ -142,11 +143,12 @@ func (o OpenVPNClient) ListUserCertificates(output string) error {
 			Expired:    expired,
 			Revoked:    revoke,
 		}
+		jsonOutputs = append(jsonOutputs, jsonOutput)
 	}
 
 	switch output {
 	case "json":
-		resp, _ := json.Marshal(jsonOutput)
+		resp, _ := json.Marshal(jsonOutputs)
 		fmt.Println(string(resp))
 	default:
 		table := tablewriter.NewWriter(os.Stdout)
