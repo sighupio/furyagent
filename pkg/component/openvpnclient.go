@@ -16,6 +16,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
 )
@@ -76,6 +77,75 @@ func (o OpenVPNClient) getFileMappings() [][]string {
 		[]string{OpenVPNClientCaKey, OpenVPNClientCaKey},
 		[]string{OpenVPNClientTaKey, OpenVPNClientTaKey},
 	}
+}
+
+type RevocationResponse struct {
+	Revoked    bool
+	RevokeTime time.Time
+}
+
+func (o OpenVPNClient) ListUserCertificates() error {
+	s3files, err := o.List(OpenVPNClientPath)
+	if err != nil {
+		return err
+	}
+	data := [][]string{}
+	files, err := o.DownloadFilesToMemory(s3files, OpenVPNClientPath)
+
+	for _, file := range files {
+		cpb, _ := pem.Decode(file)
+		crt, err := x509.ParseCertificate(cpb.Bytes)
+		if err != nil {
+			return err
+		}
+		name := crt.Subject.CommonName
+		vt := crt.NotAfter.Format("2006-01-02")
+		vf := crt.NotBefore.Format("2006-01-02")
+
+		now := time.Now()
+		var expired bool
+		if now.After(crt.NotAfter) {
+			expired = true
+		}
+
+		filenames := []string{
+			OpenVPNCRL,
+		}
+		ca, err := o.DownloadFilesToMemory(filenames, OpenVPNPath)
+		if err != nil {
+			return err
+		}
+		// Parse ceritifcate revocation list
+		crl, err := x509.ParseCRL(ca[OpenVPNCRL])
+
+		if err != nil {
+			return err
+		}
+		revoke := getRevocationInfo(crt, crl.TBSCertList.RevokedCertificates)
+
+		data = append(data, []string{name, fmt.Sprintln(vf), fmt.Sprintln(vt), fmt.Sprintf("%v", expired), fmt.Sprintf("%v %v", revoke.Revoked, revoke.RevokeTime)})
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"User", "Valid from", "Valid to", "Expired", "Revoked"})
+	table.SetRowLine(true)
+	for _, v := range data {
+		table.Append(v)
+	}
+	table.Render()
+	return nil
+}
+
+func getRevocationInfo(cert *x509.Certificate, revokedList []pkix.RevokedCertificate) RevocationResponse {
+	for _, rc := range revokedList {
+		if rc.SerialNumber.String() == cert.SerialNumber.String() {
+			return RevocationResponse{
+				Revoked:    true,
+				RevokeTime: rc.RevocationTime,
+			}
+		}
+	}
+	return RevocationResponse{}
 }
 
 func (o OpenVPNClient) CreateUser(clientName string) error {

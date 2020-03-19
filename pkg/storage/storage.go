@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/graymeta/stow"
 	"github.com/graymeta/stow/azure"
@@ -160,6 +161,24 @@ func (s *Data) Download(filename string, obj io.WriteCloser) error {
 func (s *Data) Exists(filename string) bool {
 	_, err := s.container.Item(filename)
 	return err == nil
+}
+
+// List is the single interface to List a file in a specified directory
+func (s *Data) List(dir string) ([]string, error) {
+	var files []string
+	err := stow.Walk(s.container, dir, 100,
+		func(item stow.Item, err error) error {
+			if err != nil {
+				return err
+			}
+			file := strings.Replace(item.Name(), dir, "", -1)
+			files = append(files, file)
+			return nil
+		})
+	if err != nil {
+		return []string{""}, err
+	}
+	return files, nil
 }
 
 // Upload is the single interface to upload something to Object Storage
