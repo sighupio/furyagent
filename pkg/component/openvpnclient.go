@@ -100,7 +100,7 @@ func (o OpenVPNClient) ListUserCertificates(output string) error {
 	}
 	data := [][]string{}
 	files, err := o.DownloadFilesToMemory(s3files, OpenVPNClientPath)
-	var jsonOutput ListOutput
+	var std_output ListOutput
 	var jsonOutputs []ListOutput
 
 	for _, file := range files {
@@ -134,16 +134,18 @@ func (o OpenVPNClient) ListUserCertificates(output string) error {
 		}
 		revoke := getRevocationInfo(crt, crl.TBSCertList.RevokedCertificates)
 
-		data = append(data, []string{name, fmt.Sprintln(vf), fmt.Sprintln(vt), fmt.Sprintf("%v", expired), fmt.Sprintf("%v %v", revoke.Revoked, revoke.RevokeTime)})
+		std_output = ListOutput{
 
-		jsonOutput = ListOutput{
 			User:      name,
 			ValidFrom: vf,
 			ValidTo:   vt,
 			Expired:   expired,
 			Revoked:   revoke,
 		}
-		jsonOutputs = append(jsonOutputs, jsonOutput)
+
+		data = append(data, []string{std_output.User, std_output.ValidFrom, std_output.ValidTo, fmt.Sprintf("%v", std_output.Expired), fmt.Sprintf("%v %v", std_output.Revoked.Revoked, std_output.Revoked.RevokeTime)})
+
+		jsonOutputs = append(jsonOutputs, std_output)
 	}
 
 	switch output {
