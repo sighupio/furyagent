@@ -81,16 +81,16 @@ func (o OpenVPNClient) getFileMappings() [][]string {
 }
 
 type RevocationResponse struct {
-	Revoked    bool
-	RevokeTime time.Time
+	Revoked    bool      `json:"revoked"`
+	RevokeTime time.Time `json:"revoked_time"`
 }
 
 type ListOutput struct {
-	User       string
-	Valid_from string
-	Valid_to   string
-	Expired    bool
-	Revoked    RevocationResponse
+	User      string             `json:"user"`
+	ValidFrom string             `json:"valid_from"`
+	ValidTo   string             `json:"valid_to"`
+	Expired   bool               `json:"expired"`
+	Revoked   RevocationResponse `json:"revoke_info"`
 }
 
 func (o OpenVPNClient) ListUserCertificates(output string) error {
@@ -137,11 +137,11 @@ func (o OpenVPNClient) ListUserCertificates(output string) error {
 		data = append(data, []string{name, fmt.Sprintln(vf), fmt.Sprintln(vt), fmt.Sprintf("%v", expired), fmt.Sprintf("%v %v", revoke.Revoked, revoke.RevokeTime)})
 
 		jsonOutput = ListOutput{
-			User:       name,
-			Valid_from: vf,
-			Valid_to:   vt,
-			Expired:    expired,
-			Revoked:    revoke,
+			User:      name,
+			ValidFrom: vf,
+			ValidTo:   vt,
+			Expired:   expired,
+			Revoked:   revoke,
 		}
 		jsonOutputs = append(jsonOutputs, jsonOutput)
 	}
