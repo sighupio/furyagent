@@ -16,7 +16,9 @@ var configureCmd = &cobra.Command{
 
 var overwrite bool
 var revoke bool
+var listClients bool
 var clientName string
+var output string
 
 // etcdConfigCmd represents the `furyctl configure etcd` command
 var etcdConfigCmd = &cobra.Command{
@@ -85,6 +87,8 @@ var openVPNClientConfigCmd = &cobra.Command{
 		var openvpnClient component.OpenVPNClient = component.OpenVPNClient{data}
 		if revoke {
 			err = openvpnClient.RevokeUser(clientName)
+		} else if listClients {
+			err = openvpnClient.ListUserCertificates(output)
 		} else {
 			err = openvpnClient.CreateUser(clientName)
 		}
@@ -118,6 +122,8 @@ func init() {
 	configureCmd.AddCommand(openVPNClientConfigCmd)
 	configureCmd.AddCommand(SSHKeysConfigCmd)
 	openVPNClientConfigCmd.PersistentFlags().BoolVar(&revoke, "revoke", false, "revoke client certificate")
+	openVPNClientConfigCmd.PersistentFlags().BoolVar(&listClients, "list", false, "list clients certificates")
+	openVPNClientConfigCmd.Flags().StringVar(&output, "output", output, "list clients certificates")
 	openVPNClientConfigCmd.PersistentFlags().StringVar(&clientName, "client-name", clientName, "The name of the user. It will be used as the CN of the client certificate")
 	openVPNClientConfigCmd.MarkFlagRequired("client-name")
 }

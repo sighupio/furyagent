@@ -6,8 +6,8 @@ You can find `furyagent` binaries on the [Releases page](https://github.com/sigh
 
 Supported architectures are (64 bit):
 
-- `linux`
-- `darwin`
+-   `linux`
+-   `darwin`
 
 Download right binary for your architecture and add it to your PATH. Assuming it's downloaded in your
 `~/Downloads` folder, you can run following commands (replacing `{arch}` with your architecture):
@@ -134,17 +134,21 @@ For ARK volume backup using restic backup is necessary a different bucket then t
 
 In order to enable this feature, add the following configuration to the
 `furyagent.yml` file:
+
 ```yaml
 clusterComponent:
-  openvpn:
-    server:
-      - 1.2.3.4
-      - 5.6.7.8
+    openvpn:
+        server:
+            - 1.2.3.4
+            - 5.6.7.8
 ```
+
 then you can create an OpenVPN client configuration with the following command:
+
 ```shell
 furyagent configure openvpn-client --client-name foo --config /etc/fury/furyagent.yml > foo.ovpn
 ```
+
 the newly created client certificate is saved to the object storage to keep
 track of all the certificates issued by the OpenVPN CA in case of revocation.
 
@@ -152,6 +156,7 @@ The resulting `*.ovpn` file can be fed to any OpenVPN client (such as
 Tunnelblick) to connect to the OpenVPN server.
 
 If you need to revoke access to any user, you can do it with the following command:
+
 ```shell
 furyagent config openvpn-client --client-name foo --revoke --config /etc/fury/furyagent.yml
 ```
@@ -164,7 +169,7 @@ In order to enable this feature, you have to add the following configuration to 
 clusterComponent:
     sshKeys:
         adapter:
-            name: "github"  # you can use also "http" as adapter  name but you'll need to specify also the "uri" field as well because `non github` adapter is not well known
+            name: "github" # you can use also "http" as adapter  name but you'll need to specify also the "uri" field as well because `non github` adapter is not well known
         user: "sighup" # the user that will be created on the system for storing public keys
         tempDir: "/tmp" # the temp dir that will be used to put the downloaded file
         localDirConfigs: "secrets/ssh" # where the code will look for searching the file ssh-users.yml
@@ -202,3 +207,45 @@ and it will do the following actions:
 4. create the system user (if doesn't exist) checking on which OS is launched (RedHat based, Debian based) in order to use the correct command flags
 5. create a temporary `authorized_keys`
 6. if the step 3 goes well, it will override the `authorized_keys` file of the user, otherwise it won't
+
+## furyagent list openvpn client certificate
+
+`furyagent --config path/to/furyagent.yml configure openvpn-client --list`
+
+This will be the output:
+
+```bash
+2020-03-19 17:09:00.727031 I | storage.go:146: Item pki/vpn-client/revoked/luca.zecca.crt found [size: 1103]
+2020-03-19 17:09:00.727195 I | storage.go:147: Saving item pki/vpn-client/revoked/luca.zecca.crt ...
+2020-03-19 17:09:00.830450 I | storage.go:146: Item pki/vpn-client/simone.messina.crt found [size: 1107]
+2020-03-19 17:09:00.830470 I | storage.go:147: Saving item pki/vpn-client/simone.messina.crt ...
+2020-03-19 17:09:00.948095 I | storage.go:146: Item pki/vpn/ca.crl found [size: 597]
+2020-03-19 17:09:00.948113 I | storage.go:147: Saving item pki/vpn/ca.crl ...
+2020-03-19 17:09:01.046877 I | storage.go:146: Item pki/vpn/ca.crl found [size: 597]
+2020-03-19 17:09:01.046893 I | storage.go:147: Saving item pki/vpn/ca.crl ...
++----------------+------------+------------+---------+--------------------------------+
+|      USER      | VALID FROM |  VALID TO  | EXPIRED |            REVOKED             |
++----------------+------------+------------+---------+--------------------------------+
+| luca.zecca     | 2020-03-19 | 2021-03-19 | false   | true 2020-03-19 14:47:40 +0000 |
+|                |            |            |         | UTC                            |
++----------------+------------+------------+---------+--------------------------------+
+| simone.messina | 2020-03-19 | 2021-03-19 | false   | false 0001-01-01 00:00:00      |
+|                |            |            |         | +0000 UTC                      |
++----------------+------------+------------+---------+--------------------------------+
+```
+
+you can also add `--output=json` to the command above and than you can obtain a json output:
+
+```bash
+go run main.go --config=ssh/furyagent.yml configure openvpn-client --list --output=json
+2020-03-19 18:37:25.204840 I | storage.go:146: Item pki/vpn-client/revoked/luca.zecca.crt found [size: 1103]
+2020-03-19 18:37:25.204988 I | storage.go:147: Saving item pki/vpn-client/revoked/luca.zecca.crt ...
+2020-03-19 18:37:25.314691 I | storage.go:146: Item pki/vpn-client/simone.messina.crt found [size: 1107]
+2020-03-19 18:37:25.314715 I | storage.go:147: Saving item pki/vpn-client/simone.messina.crt ...
+2020-03-19 18:37:25.432634 I | storage.go:146: Item pki/vpn/ca.crl found [size: 597]
+2020-03-19 18:37:25.432655 I | storage.go:147: Saving item pki/vpn/ca.crl ...
+2020-03-19 18:37:25.537314 I | storage.go:146: Item pki/vpn/ca.crl found [size: 597]
+2020-03-19 18:37:25.537341 I | storage.go:147: Saving item pki/vpn/ca.crl ...
+[{"User":"luca.zecca","Valid_from":"2020-03-19","Valid_to":"2021-03-19","Expired":false,"Revoked":{"Revoked":true,"RevokeTime":"2020-03-19T14:47:40Z"}},{"User":"simone.messina","Valid_from":"2020-03-19","Valid_to":"2021-03-19","Expired":false,"Revoked":{"Revoked":false,"RevokeTime":"0001-01-01T00:00:00Z"}}]
+```
+

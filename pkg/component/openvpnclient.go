@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
 )
@@ -76,6 +78,102 @@ func (o OpenVPNClient) getFileMappings() [][]string {
 		[]string{OpenVPNClientCaKey, OpenVPNClientCaKey},
 		[]string{OpenVPNClientTaKey, OpenVPNClientTaKey},
 	}
+}
+
+type RevocationResponse struct {
+	Revoked    bool      `json:"revoked"`
+	RevokeTime time.Time `json:"revoked_time"`
+}
+
+type ListOutput struct {
+	User      string             `json:"user"`
+	ValidFrom string             `json:"valid_from"`
+	ValidTo   string             `json:"valid_to"`
+	Expired   bool               `json:"expired"`
+	Revoked   RevocationResponse `json:"revoke_info"`
+}
+
+func (o OpenVPNClient) ListUserCertificates(output string) error {
+	s3files, err := o.List(OpenVPNClientPath)
+	if err != nil {
+		return err
+	}
+	data := [][]string{}
+	files, err := o.DownloadFilesToMemory(s3files, OpenVPNClientPath)
+	var std_output ListOutput
+	var jsonOutputs []ListOutput
+
+	for _, file := range files {
+		cpb, _ := pem.Decode(file)
+		crt, err := x509.ParseCertificate(cpb.Bytes)
+		if err != nil {
+			return err
+		}
+		name := crt.Subject.CommonName
+		vt := crt.NotAfter.Format("2006-01-02")
+		vf := crt.NotBefore.Format("2006-01-02")
+
+		now := time.Now()
+		var expired bool
+		if now.After(crt.NotAfter) {
+			expired = true
+		}
+
+		filenames := []string{
+			OpenVPNCRL,
+		}
+		ca, err := o.DownloadFilesToMemory(filenames, OpenVPNPath)
+		if err != nil {
+			return err
+		}
+		// Parse ceritifcate revocation list
+		crl, err := x509.ParseCRL(ca[OpenVPNCRL])
+
+		if err != nil {
+			return err
+		}
+		revoke := getRevocationInfo(crt, crl.TBSCertList.RevokedCertificates)
+
+		std_output = ListOutput{
+
+			User:      name,
+			ValidFrom: vf,
+			ValidTo:   vt,
+			Expired:   expired,
+			Revoked:   revoke,
+		}
+
+		data = append(data, []string{std_output.User, std_output.ValidFrom, std_output.ValidTo, fmt.Sprintf("%v", std_output.Expired), fmt.Sprintf("%v %v", std_output.Revoked.Revoked, std_output.Revoked.RevokeTime)})
+
+		jsonOutputs = append(jsonOutputs, std_output)
+	}
+
+	switch output {
+	case "json":
+		resp, _ := json.Marshal(jsonOutputs)
+		fmt.Println(string(resp))
+	default:
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"User", "Valid from", "Valid to", "Expired", "Revoked"})
+		table.SetRowLine(true)
+		for _, v := range data {
+			table.Append(v)
+		}
+		table.Render()
+	}
+	return nil
+}
+
+func getRevocationInfo(cert *x509.Certificate, revokedList []pkix.RevokedCertificate) RevocationResponse {
+	for _, rc := range revokedList {
+		if rc.SerialNumber.String() == cert.SerialNumber.String() {
+			return RevocationResponse{
+				Revoked:    true,
+				RevokeTime: rc.RevocationTime,
+			}
+		}
+	}
+	return RevocationResponse{}
 }
 
 func (o OpenVPNClient) CreateUser(clientName string) error {
