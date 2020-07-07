@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"log"
 
 	"github.com/sighupio/furyagent/pkg/component"
@@ -85,6 +86,11 @@ var openVPNClientConfigCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		var openvpnClient component.OpenVPNClient = component.OpenVPNClient{data}
+
+		if len(openvpnClient.ClusterComponentData.ClusterConfig.OpenVPN.Servers) == 0 {
+			log.Fatal(errors.New("`openvpnClient.ClusterComponentData.ClusterConfig.OpenVPN.Servers` must not be empty (and must be a list)"))
+		}
+
 		if revoke {
 			err = openvpnClient.RevokeUser(clientName)
 		} else if listClients {
