@@ -14,6 +14,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -51,7 +53,7 @@ compress lzo
 verb 3
 tls-client
 
-{{ range $server := .Server }}remote {{ $server }} 1194
+{{ range $server := .Server }}remote {{ $server.Hostname }} {{ $server.Port }}
 {{ end }}
 
 <ca>
@@ -195,15 +197,35 @@ func (o OpenVPNClient) CreateUser(clientName string) error {
 	if err != nil {
 		return err
 	}
+	type openVPNServer struct {
+		Hostname string
+		Port     int
+	}
 	type openVPNClientConfig struct {
-		Server     []string
+		Server     []openVPNServer
 		CACert     string
 		ClientCert string
 		ClientKey  string
 		TLSAuthKey string
 	}
+	var servers []openVPNServer
+	for _, s := range o.OpenVPN.Servers {
+		hostName := s
+		port := 1194
+		if strings.Contains(hostName, ":") {
+			hostName = strings.Split(s, ":")[0]
+			port, err = strconv.Atoi(strings.Split(s, ":")[1])
+			if err != nil {
+				return err
+			}
+		}
+		servers = append(servers, openVPNServer{
+			Hostname: hostName,
+			Port:     port,
+		})
+	}
 	clientConfig := openVPNClientConfig{
-		Server:     o.OpenVPN.Servers,
+		Server:     servers,
 		CACert:     string(files[OpenVPNCaCert]),
 		ClientCert: string(clientCert[clientName+".crt"]),
 		ClientKey:  string(clientCert[clientName+".key"]),
