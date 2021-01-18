@@ -25,6 +25,22 @@ brew tap sighupio/furyagent
 brew install furyagent
 ```
 
+To be able to use openvpn client commands, you need also openvpn installed in your system.
+
+For example on MacOS:
+
+```shell
+brew install openvpn
+```
+
+And put 
+
+```
+export PATH=$(brew --prefix openvpn)/sbin:$PATH
+```
+
+in your .zshrc or .bashrc .
+
 ## Usage
 
 ```shell
