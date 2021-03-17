@@ -8,8 +8,8 @@ You can find `furyagent` binaries on the [Releases page](https://github.com/sigh
 
 Supported architectures are (64 bit):
 
--   `linux`
--   `darwin`
+- `linux`
+- `darwin`
 
 Download right binary for your architecture and add it to your PATH. Assuming it's downloaded in your
 `~/Downloads` folder, you can run following commands (replacing `{arch}` with your architecture):
@@ -33,7 +33,7 @@ For example on MacOS:
 brew install openvpn
 ```
 
-And put 
+And put
 
 ```
 export PATH=$(brew --prefix openvpn)/sbin:$PATH
@@ -155,10 +155,10 @@ In order to enable this feature, add the following configuration to the
 
 ```yaml
 clusterComponent:
-    openvpn:
-        server:
-            - 1.2.3.4
-            - 5.6.7.8
+  openvpn:
+    server:
+      - 1.2.3.4
+      - 5.6.7.8
 ```
 
 then you can create an OpenVPN client configuration with the following command:
@@ -185,28 +185,29 @@ In order to enable this feature, you have to add the following configuration to 
 
 ```yaml
 clusterComponent:
-    sshKeys:
-        adapter:
-            name: "github" # you can use also "http" as adapter  name but you'll need to specify also the "uri" field as well because `non github` adapter is not well known
-        user: "sighup" # the user that will be created on the system for storing public keys
-        tempDir: "/tmp" # the temp dir that will be used to put the downloaded file
-        localDirConfigs: "secrets/ssh" # where the code will look for searching the file ssh-users.yml
+  sshKeys:
+    adapter:
+      name: "github" # you can use also "http" as adapter  name but you'll need to specify also the "uri" field as well because `non github` adapter is not well known
+    user: "sighup" # the user that will be created on the system for storing public keys
+    tempDir: "/tmp" # the temp dir that will be used to put the downloaded file
+    localDirConfigs: "secrets/ssh" # where the code will look for searching the file ssh-users.yml
+    privileged: "false" #  the default behavior is to set the user privileged (with sudo capability) , you can disable this setting this field as "false"
 ```
 
 `ssh-users.yml` should have the following structure:
 
 ```yaml
 users:
-    - name: lucazecca
-      github_id: lzecca78
-    - name: philippe
-      github_id: phisco
-    - name: samuele
-      github_id: nutellinoit
-    - name: lucanovara
-      github_id: lnovara
-    - name: ramiro
-      github_id: ralgozino
+  - name: lucazecca
+    github_id: lzecca78
+  - name: philippe
+    github_id: phisco
+  - name: samuele
+    github_id: nutellinoit
+  - name: lucanovara
+    github_id: lnovara
+  - name: ramiro
+    github_id: ralgozino
 ```
 
 once you've done that, all you have to do is to upload the `ssh-users.yml` to the S3 bucket:
@@ -266,4 +267,3 @@ go run main.go --config=ssh/furyagent.yml configure openvpn-client --list --outp
 2020-03-19 18:37:25.537341 I | storage.go:147: Saving item pki/vpn/ca.crl ...
 [{"User":"luca.zecca","Valid_from":"2020-03-19","Valid_to":"2021-03-19","Expired":false,"Revoked":{"Revoked":true,"RevokeTime":"2020-03-19T14:47:40Z"}},{"User":"simone.messina","Valid_from":"2020-03-19","Valid_to":"2021-03-19","Expired":false,"Revoked":{"Revoked":false,"RevokeTime":"0001-01-01T00:00:00Z"}}]
 ```
-
