@@ -1,6 +1,6 @@
-# Furyagent v0.2.2
+# Furyagent v0.2.3
 
-[![Build Status](http://ci.sighup.io/api/badges/sighupio/furyagent/status.svg?ref=refs/tags/v0.2.2)](http://ci.sighup.io/sighupio/furyagent)
+[![Build Status](http://ci.sighup.io/api/badges/sighupio/furyagent/status.svg?ref=refs/tags/v0.2.3)](http://ci.sighup.io/sighupio/furyagent)
 
 ## Install
 
