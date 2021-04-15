@@ -275,7 +275,7 @@ func createUser(username string) (*SystemUser, error) {
 		err := cmd.Run()
 		log.Println(output.String())
 		if err != nil {
-			log.Fatal("error while executing command adduser")
+			log.Fatalf("error while executing command adduser: %v", err)
 		}
 	}
 	// create sudoer file for user
