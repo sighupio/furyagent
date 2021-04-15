@@ -246,7 +246,7 @@ func getAdduserCommand(home, username string) []string {
 		log.Printf("os identified is %s: ", strings.ToLower(getOS()))
 		cmd := []string{"adduser", "--home", home, "--disabled-password", username}
 		return cmd
-	case "centos", "redhat":
+	case "centos", "redhat", "ol":
 		log.Printf("os identified is %s: ", strings.ToLower(getOS()))
 		cmd := []string{"adduser", "-m", "--home-dir", home, username}
 		return cmd
