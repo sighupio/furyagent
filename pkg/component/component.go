@@ -95,4 +95,5 @@ type SSHConfig struct {
 	TempDir         string         `mapstructure:"tempDir"`
 	LocalDirConfigs string         `mapstructure:"localDirConfigs"`
 	Adapter         HTTPAdapterSet `mapstructure:"adapter"`
+	Privileged      string           `mapstructure:"privileged"`
 }

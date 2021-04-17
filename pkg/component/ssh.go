@@ -256,7 +256,7 @@ func getAdduserCommand(home, username string) []string {
 	return []string{}
 }
 
-func createUser(username string) (*SystemUser, error) {
+func createUser(username string,config SSHConfig) (*SystemUser, error) {
 	userSpec := new(SystemUser)
 	var userAlreadyCreated bool
 	userAlreadyCreated = false
@@ -278,15 +278,25 @@ func createUser(username string) (*SystemUser, error) {
 			log.Fatalf("error while executing command adduser: %v", err)
 		}
 	}
-	// create sudoer file for user
-	sudoerFile := fmt.Sprintf("99_%s", username)
-	sudoerPathname := path.Join(SSHSudoerDir, sudoerFile)
-	if !fileExists(sudoerPathname) {
-		log.Printf("the sudoer file %s is missing, creating it", sudoerPathname)
-		sudoerContent := []byte(fmt.Sprintf("%s ALL=(ALL) NOPASSWD:ALL", username))
-		err := ioutil.WriteFile(sudoerPathname, sudoerContent, 0644)
-		if err != nil {
-			log.Fatal("error while  writing sudoer configuration")
+	// setting default value for backward compatibility
+	var privileged bool
+	if config.Privileged == "" {
+		privileged = true
+	} else {
+		privileged, _ = strconv.ParseBool(config.Privileged)
+
+	}
+	if privileged {
+		// create sudoer file for user
+		sudoerFile := fmt.Sprintf("99_%s", username)
+		sudoerPathname := path.Join(SSHSudoerDir, sudoerFile)
+		if !fileExists(sudoerPathname) {
+			log.Printf("the sudoer file %s is missing, creating it", sudoerPathname)
+			sudoerContent := []byte(fmt.Sprintf("%s ALL=(ALL) NOPASSWD:ALL", username))
+			err := ioutil.WriteFile(sudoerPathname, sudoerContent, 0644)
+			if err != nil {
+				log.Fatal("error while  writing sudoer configuration")
+			}
 		}
 	}
 	// create sshdir
