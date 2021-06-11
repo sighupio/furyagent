@@ -187,26 +187,44 @@ In order to enable this feature, you have to add the following configuration to 
 clusterComponent:
     sshKeys:
         adapter:
-            name: "github" # you can use also "http" as adapter  name but you'll need to specify also the "uri" field as well because `non github` adapter is not well known
+            # Avilable options: ["github", "http", "static"]
+            # github: the ssh key will be retrived from the github user id (described in next section)
+            # http: `non github` adapter is not well known, so necessary to specify also the "uri" field as well since 
+            # static: you can specify the ssh key directly
+            name: "github" 
         user: "sighup" # the user that will be created on the system for storing public keys
         tempDir: "/tmp" # the temp dir that will be used to put the downloaded file
         localDirConfigs: "secrets/ssh" # where the code will look for searching the file ssh-users.yml
 ```
 
-`ssh-users.yml` should have the following structure:
+`ssh-users.yml` should have one of the following structures: 
+
+* In the case of `github` adapter:
 
 ```yaml
 users:
     - name: lucazecca
-      github_id: lzecca78
+      user_id: lzecca78 # Github user ID
     - name: philippe
-      github_id: phisco
+      user_id: phisco
     - name: samuele
-      github_id: nutellinoit
+      user_id: nutellinoit
     - name: lucanovara
-      github_id: lnovara
+      user_id: lnovara
     - name: ramiro
-      github_id: ralgozino
+      user_id: ralgozino
+```
+
+* In the case of `static` adapter:
+
+```yaml
+users:
+    - name: lucazecca
+      user_id: lzecca78
+      ssh_key: ssh-rsa xxxxxx
+    - name: nandaja
+      user_id: nandaja
+      ssh_key: ssh-rsa yyyxxxxxx
 ```
 
 once you've done that, all you have to do is to upload the `ssh-users.yml` to the S3 bucket:

@@ -37,6 +37,7 @@ type SSHUsersFile struct {
 type UserSpec struct {
 	Name   string `yaml:"name"`
 	UserID string `yaml:"user_id"`
+	SSHKey string `yaml:"ssh_key"`
 }
 
 type SystemUser struct {
@@ -79,18 +80,33 @@ func (o SSHComponent) Configure(overwrite bool) error {
 	return sshPubKeys(o.SSH)
 }
 
-func getKeysFromAdapter(config SSHConfig, yamlSPec SSHUsersFile) (*bytes.Buffer, bool, error) {
+
+func writeAuthorizedKeys(sshKey string, authorizedKeys *bytes.Buffer,
+						 userName string) *bytes.Buffer {
+	log.Println("writing ssh keys for user " + userName)
+	authorizedKeys.WriteString("#### " + userName + "\n")
+	if sshKey != "" {
+		authorizedKeys.WriteString(sshKey)
+	} else {
+		authorizedKeys.WriteString("#### no keys for " + userName + "\n")
+	}
+	return authorizedKeys
+}
+
+
+func getKeysFromAdapter(adapter HTTPAdapterSet, yamlSPec SSHUsersFile) (*bytes.Buffer, bool, error) {
 	authorizedKeys := &bytes.Buffer{}
 	var errorFound bool
 	errorFound = false
 	for _, user := range yamlSPec.Users {
 		if user.UserID != "" {
 			log.Printf("loading public keys for user %s", user.UserID)
-			_, err := getPublicKeyFromHttp(config.Adapter, user, authorizedKeys)
+			sshKey, err := getPublicKeyFromSource(adapter, user)
 			if err != nil {
-				log.Printf("error found while getting github key for user %s", user.UserID)
+				log.Println(err)
 				errorFound = true
 			}
+			writeAuthorizedKeys(sshKey, authorizedKeys, user.UserID)
 		}
 	}
 	return authorizedKeys, errorFound, nil
@@ -100,7 +116,7 @@ func sshPubKeys(config SSHConfig) error {
 	//parse the ssh-user file
 	sshYaml, err := unmarshalSSHUserYaml(config.TempDir, config)
 	authorizedKeys := &bytes.Buffer{}
-	authorizedKeys, errorFound, err = getKeysFromAdapter(config, sshYaml)
+	authorizedKeys, errorFound, err = getKeysFromAdapter(config.Adapter, sshYaml)
 	var sysUser *SystemUser
 	sysUser, err = createUser(config.User)
 	if err != nil {
@@ -177,46 +193,50 @@ func unmarshalSSHUserYaml(dirPath string, config SSHConfig) (SSHUsersFile, error
 	return sshYaml, nil
 }
 
-func getPublicKeyFromHttp(adapter HTTPAdapterSet, userspec UserSpec, authorizedKeys *bytes.Buffer) (*bytes.Buffer, error) {
+func httpCallSShKeys(baseURL string, userID string)  (string, error) {
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
-	var baseURL string
-	switch adapter.Name {
-	case "github":
-		baseURL = "https://github.com"
-	case "http":
-		if adapter.Uri == "" {
-			log.Fatal("the uri field cannot be empty if adapter http is specified")
-		}
-		baseURL = adapter.Uri
-	default:
-		log.Fatalf("the current adapter %s is not supported", adapter.Name)
-	}
 	u, err := url.Parse(baseURL)
 	//the structure of the http `github-agnostic` must be the same of github: every user must have a file `user.keys`
-	u.Path = path.Join(u.Path, userspec.UserID+".keys")
+	u.Path = path.Join(u.Path, userID + ".keys")
 	s := u.String()
 	resp, err := client.Get(s)
 	if err != nil {
 		log.Fatal("http protocol error: ", err)
 	}
-	if resp.StatusCode == 200 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		log.Println("writing ssh keys for user " + userspec.Name)
-		authorizedKeys.WriteString("#### " + userspec.UserID + "\n")
-		authorizedKeys.WriteString(buf.String())
-	} else {
-		log.Println("user " + userspec.UserID + " not found!")
-		authorizedKeys.WriteString("#### " + userspec.Name + "\n")
-		authorizedKeys.WriteString("#### no keys for " + userspec.UserID + "\n")
-		log.Printf("error while getting github user %s", userspec.UserID)
-		return authorizedKeys, fmt.Errorf("errors found getting github users")
+	if resp.StatusCode != 200 {
+		log.Println("user " + userID + " not found!")
+		return "", fmt.Errorf("errors found while retrieving github users")
 	}
-
-	return authorizedKeys, nil
+	var buf bytes.Buffer
+	buf.ReadFrom(resp.Body)
+	return buf.String(), nil
 }
+
+func getPublicKeyFromSource(adapter HTTPAdapterSet, userspec UserSpec) (string, error) {
+	switch adapter.Name {
+	case "github":
+		return httpCallSShKeys("https://github.com", userspec.UserID)
+	case "http":
+		baseURL := adapter.Uri
+		if adapter.Uri == "" {
+			log.Fatal("the uri field cannot be empty if adapter http is specified")
+		}
+		return httpCallSShKeys(baseURL, userspec.UserID)
+	case "static":
+		sshKey := userspec.SSHKey
+		if sshKey == "" {
+			return "", fmt.Errorf("SSHKey empty for `user` %s while " +
+										"using `static` adapter", userspec.UserID)
+		}
+		return sshKey, nil
+	default:
+		log.Fatalf("the current adapter %s is not supported", adapter.Name)
+	}
+	return "", nil
+}
+
 
 func getOS() string {
 	b, err := ioutil.ReadFile("/etc/os-release")
