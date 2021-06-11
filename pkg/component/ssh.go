@@ -100,7 +100,7 @@ func getKeysFromAdapter(adapter HTTPAdapterSet, yamlSPec SSHUsersFile) (*bytes.B
 	var errorFound bool
 	errorFound = false
 	for _, user := range yamlSPec.Users {
-		if user.UserID != "" || user.SSHKey != "" {
+		if user.UserID != "" {
 			log.Printf("loading public keys for user %s", user.UserID)
 			sshKey, err := getPublicKeyFromSource(adapter, user)
 			if err != nil {
