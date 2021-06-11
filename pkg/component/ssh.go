@@ -83,12 +83,11 @@ func (o SSHComponent) Configure(overwrite bool) error {
 
 func writeAuthorizedKeys(sshKey string, authorizedKeys *bytes.Buffer,
 						 userName string) *bytes.Buffer {
+	log.Println("writing ssh keys for user " + userName)
+	authorizedKeys.WriteString("#### " + userName + "\n")
 	if sshKey != "" {
-		log.Println("writing ssh keys for user " + userName)
-		authorizedKeys.WriteString("#### " + userName + "\n")
 		authorizedKeys.WriteString(sshKey)
 	} else {
-		authorizedKeys.WriteString("#### " + userName + "\n")
 		authorizedKeys.WriteString("#### no keys for " + userName + "\n")
 	}
 	return authorizedKeys
